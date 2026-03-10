@@ -138,8 +138,8 @@ function EventForm({ title, initialData, onSubmit, onClose }) {
     type: initialData?.type || 'Career Fair',
     date: initialData?.date?.slice(0, 10) || '',
     organizer: initialData?.organizer || initialData?.co || '',
-    location: initialData?.location || 'Lima Techno Park',
-    description: initialData?.description || '',
+    location: initialData?.location || 'Zero Effort',
+    description: initialData?.details?.join(', ') || '',
   });
 
   function handleChange(field, value) {
@@ -155,7 +155,7 @@ function EventForm({ title, initialData, onSubmit, onClose }) {
   return (
     <form onSubmit={handleSubmit}>
       <div className="m-head">
-        <div><div className="m-title">{title}</div><div className="m-sub">Lima Techno Park · Events</div></div>
+        <div><div className="m-title">{title}</div><div className="m-sub">Zero Effort · Events</div></div>
         <button className="m-close" type="button" onClick={onClose}>✕</button>
       </div>
       <div className="msep">Event Details</div>
@@ -170,10 +170,10 @@ function EventForm({ title, initialData, onSubmit, onClose }) {
         <div className="fgroup"><label className="flabel">Date *</label><input className="finput" type="date" required value={form.date} onChange={e => handleChange('date', e.target.value)} /></div>
       </div>
       <div className="frow">
-        <div className="fgroup"><label className="flabel">Organizer</label><input className="finput" value={form.organizer} onChange={e => handleChange('organizer', e.target.value)} placeholder="Lima Techno Park" /></div>
-        <div className="fgroup"><label className="flabel">Location</label><input className="finput" value={form.location} onChange={e => handleChange('location', e.target.value)} placeholder="Lima Techno Park" /></div>
+        <div className="fgroup"><label className="flabel">Organizer</label><input className="finput" value={form.organizer} onChange={e => handleChange('organizer', e.target.value)} placeholder="Zero Effort" /></div>
+        <div className="fgroup"><label className="flabel">Location</label><input className="finput" value={form.location} onChange={e => handleChange('location', e.target.value)} placeholder="Zero Effort" /></div>
       </div>
-      <div className="fgroup"><label className="flabel">Description</label><textarea className="ftextarea" value={form.description} onChange={e => handleChange('description', e.target.value)} placeholder="Event description..." /></div>
+      <div className="fgroup"><label className="flabel">Details</label><textarea className="ftextarea" value={form.description} onChange={e => handleChange('description', e.target.value)} placeholder="Event details (comma-separated)..." /></div>
       <button className="btn-primary" type="submit">{initialData ? 'Save changes →' : 'Add event →'}</button>
     </form>
   );

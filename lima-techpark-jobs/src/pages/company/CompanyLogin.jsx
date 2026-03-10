@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getCompanies } from '../../lib/db';
 import { useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
+import { useToast } from '../../contexts/ToastContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function CompanyLogin() {
   const [step, setStep] = useState('choose');
@@ -12,8 +15,12 @@ export default function CompanyLogin() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
   const { companyLogin } = useAuth();
   const navigate = useNavigate();
+  const { showToast } = useToast();
+  const { theme } = useTheme();
 
   useEffect(() => {
     async function loadCos() {
@@ -47,6 +54,51 @@ export default function CompanyLogin() {
     }
   }
 
+  async function handleForgotPassword(e) {
+    e.preventDefault();
+    if (!forgotEmail) {
+      setError('Please enter your email address');
+      return;
+    }
+    setError('');
+    setForgotLoading(true);
+    
+    try {
+      // Check if email exists in company_users
+      const { data: companyUser, error: userError } = await supabase
+        .from('company_users')
+        .select('company_id, email')
+        .eq('email', forgotEmail)
+        .maybeSingle();
+
+      if (userError || !companyUser) {
+        setError('No company account found with this email');
+        return;
+      }
+
+      // Insert reset request
+      const { error: insertError } = await supabase
+        .from('password_reset_requests')
+        .insert([{
+          company_id: companyUser.company_id,
+          email: forgotEmail,
+          status: 'pending'
+        }]);
+
+      if (insertError) {
+        setError('Failed to submit reset request. Please try again.');
+      } else {
+        showToast('Reset request sent! The admin will contact you shortly.', 'success');
+        setForgotEmail('');
+        setStep('choose');
+      }
+    } catch (err) {
+      setError('Failed to submit reset request. Please try again.');
+    } finally {
+      setForgotLoading(false);
+    }
+  }
+
   const emojiMap = ['💼', '🌐', '🛒', '🎮', '🔒', '💰'];
 
   return (
@@ -59,8 +111,13 @@ export default function CompanyLogin() {
           <div className={`auth-step w2 ${step !== 'choose' ? 'lit' : ''}`} />
         </div>
         <div className="brand">
-          <div className="brand-icon">🏢</div>
-          <div className="brand-name">Lima TechPark<span>Jobs</span></div>
+          <div style={{ marginBottom: '0.5rem' }}>
+            <img 
+              src={theme === 'dark' ? '/zero-effort-logo-white.png' : '/zero-effort-logo-dark.png'} 
+              alt="Zero Effort" 
+              style={{ height: '60px', width: 'auto', objectFit: 'contain' }} 
+            />
+          </div>
           <div className="brand-badge">COMPANY</div>
         </div>
 
@@ -111,7 +168,52 @@ export default function CompanyLogin() {
                 {loading ? 'Signing in...' : 'Sign in →'}
               </button>
             </form>
+            <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+              <button 
+                type="button" 
+                onClick={() => { setStep('forgot'); setError(''); setForgotEmail(email); }}
+                style={{ 
+                  background: 'none', 
+                  border: 'none', 
+                  color: 'var(--accent)', 
+                  fontSize: '.75rem', 
+                  cursor: 'pointer',
+                  textDecoration: 'underline'
+                }}
+              >
+                Forgot Password?
+              </button>
+            </div>
             <div className="form-note">Demo mode — any credentials work</div>
+          </div>
+        )}
+
+        {/* Step 3: Forgot Password */}
+        {step === 'forgot' && (
+          <div className="step active">
+            <button className="back-btn" onClick={() => setStep('login')}>← Back</button>
+            <div className="step-h">Request Password Reset</div>
+            <div className="step-s">Enter your email to request a password reset from the admin</div>
+            {error && (
+              <div style={{ background: 'rgba(244,63,94,.1)', border: '1px solid rgba(244,63,94,.2)', borderRadius: '8px', padding: '.6rem .8rem', marginBottom: '.875rem', fontSize: '.78rem', color: 'var(--danger)' }}>
+                {error}
+              </div>
+            )}
+            <form onSubmit={handleForgotPassword}>
+              <div className="fgroup">
+                <label className="flabel">Work email</label>
+                <input 
+                  className="finput" 
+                  type="email" 
+                  placeholder="you@company.com" 
+                  value={forgotEmail} 
+                  onChange={e => setForgotEmail(e.target.value)} 
+                />
+              </div>
+              <button className="btn-primary" type="submit" disabled={forgotLoading}>
+                {forgotLoading ? 'Sending...' : 'Request Password Reset →'}
+              </button>
+            </form>
           </div>
         )}
       </div>

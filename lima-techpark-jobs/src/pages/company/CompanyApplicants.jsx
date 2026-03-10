@@ -4,6 +4,22 @@ import { getCompanyApplications, getCompanyJobs, updateApplicationStatus, format
 import { useToast } from '../../contexts/ToastContext';
 import Modal from '../../components/Modal';
 
+// Skeleton card component
+function SkeletonCard() {
+  return (
+    <div className="skeleton-card" style={{
+      background: 'var(--surface)',
+      borderRadius: '12px',
+      padding: '20px',
+      animation: 'pulse 1.5s ease-in-out infinite'
+    }}>
+      <div style={{ height: '20px', background: 'var(--border)', borderRadius: '4px', marginBottom: '12px', width: '60%' }}/>
+      <div style={{ height: '14px', background: 'var(--border)', borderRadius: '4px', marginBottom: '8px', width: '90%' }}/>
+      <div style={{ height: '14px', background: 'var(--border)', borderRadius: '4px', width: '75%' }}/>
+    </div>
+  )
+}
+
 export default function CompanyApplicants() {
   const { company } = useOutletContext();
   const [applicants, setApplicants] = useState([]);
@@ -13,10 +29,12 @@ export default function CompanyApplicants() {
   const [filterStatus, setFilterStatus] = useState('');
   const [filterRole, setFilterRole] = useState('');
   const [modal, setModal] = useState({ type: null, data: null });
+  const [isLoading, setIsLoading] = useState(true);
   const { showToast } = useToast();
 
   async function loadData() {
     if (!company) return;
+    setIsLoading(true);
     try {
       const [apps, jbs] = await Promise.all([
         getCompanyApplications(company.id),
@@ -36,9 +54,13 @@ export default function CompanyApplicants() {
         cover: a.cover_letter || '',
         hasResume: !!a.resume_url,
         hasPortfolio: !!a.portfolio_url,
+        resumeUrl: a.resume_url || '',
+        portfolioUrl: a.portfolio_url || '',
       })));
     } catch (err) {
       console.error('Error loading applicants:', err);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -73,6 +95,15 @@ export default function CompanyApplicants() {
   }
 
   const selectedApp = selected ? applicants.find(a => a.id === selected) : null;
+
+  if (isLoading) return (
+    <div className="pw">
+      <div className="ph"><h2>Applicants</h2><p>Review, accept, decline, or contact applicants for your listings.</p></div>
+      <div style={{ display: 'grid', gap: '16px', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+        {[1,2,3].map(i => <SkeletonCard key={i} />)}
+      </div>
+    </div>
+  );
 
   return (
     <div className="pw">
@@ -113,8 +144,15 @@ export default function CompanyApplicants() {
               </div>
             </div>
           ))}
-          {filtered.length === 0 && (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text3)', fontSize: '.78rem' }}>No applicants found.</div>
+          {filtered.length === 0 && !isLoading && (
+            <div className="empty-state">
+              <div style={{ fontSize: '48px' }}>�</div>
+              <h3>No applicants yet</h3>
+              <p>Applicants will appear here once they apply to your job listings</p>
+              <button className="btn-primary" onClick={() => navigate('/company/listings')}>
+                View Job Listings →
+              </button>
+            </div>
           )}
         </div>
 
@@ -146,17 +184,27 @@ export default function CompanyApplicants() {
 
               <div className="dp-sec">
                 <div className="dp-sec-h">Documents</div>
-                {selectedApp.hasResume && (
-                  <div className="doc-link" style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8, padding: '.6rem .9rem', fontSize: '.78rem', fontWeight: 600, color: 'var(--text2)', marginBottom: '.5rem' }}>
+                {selectedApp.hasResume && selectedApp.resumeUrl && (
+                  <a 
+                    href={selectedApp.resumeUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8, padding: '.6rem .9rem', fontSize: '.78rem', fontWeight: 600, color: 'var(--text2)', marginBottom: '.5rem', textDecoration: 'none', cursor: 'pointer' }}
+                  >
                     <span>📄</span><span>Resume / CV</span>
-                    <span style={{ marginLeft: 'auto', fontSize: '.68rem', color: 'var(--success)' }}>✓ Uploaded</span>
-                  </div>
+                    <span style={{ marginLeft: 'auto', fontSize: '.68rem', color: 'var(--accent)' }}>View →</span>
+                  </a>
                 )}
-                {selectedApp.hasPortfolio && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8, padding: '.6rem .9rem', fontSize: '.78rem', fontWeight: 600, color: 'var(--text2)' }}>
-                    <span>📎</span><span>Portfolio</span>
-                    <span style={{ marginLeft: 'auto', fontSize: '.68rem', color: 'var(--success)' }}>✓ Uploaded</span>
-                  </div>
+                {selectedApp.hasPortfolio && selectedApp.portfolioUrl && (
+                  <a 
+                    href={selectedApp.portfolioUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8, padding: '.6rem .9rem', fontSize: '.78rem', fontWeight: 600, color: 'var(--text2)', textDecoration: 'none', cursor: 'pointer' }}
+                  >
+                    <span>🌐</span><span>Portfolio</span>
+                    <span style={{ marginLeft: 'auto', fontSize: '.68rem', color: 'var(--accent)' }}>View →</span>
+                  </a>
                 )}
               </div>
 

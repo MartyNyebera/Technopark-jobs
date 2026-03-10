@@ -2,14 +2,17 @@ import { useEffect, useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getCompanyProfile } from '../../lib/db';
+import { supabase } from '../../lib/supabase';
 import PortalNav from '../../components/PortalNav';
 import LoadingOverlay from '../../components/LoadingOverlay';
+import { useToast } from '../../contexts/ToastContext';
 
 export default function CompanyLayout() {
   const { profile, checkSession } = useAuth();
   const [loading, setLoading] = useState(true);
   const [company, setCompany] = useState(null);
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   useEffect(() => {
     async function init() {
@@ -22,6 +25,14 @@ export default function CompanyLayout() {
       try {
         const co = await getCompanyProfile(p.company_id);
         setCompany(co);
+        
+        // Check if company is disabled
+        if (co && !co.is_active) {
+          await supabase.auth.signOut();
+          navigate('/company');
+          showToast('Your company account has been disabled. Please contact the administrator.', 'error');
+          return;
+        }
       } catch (err) {
         console.error('Error loading company profile:', err);
       }

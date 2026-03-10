@@ -1,7 +1,12 @@
 /* ════════════════════════════
-   LIMA TECHPARK JOBS — GLOBAL THEME
+   ZERO EFFORT — GLOBAL THEME
 ════════════════════════════ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
 
 :root {
   --font: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -693,7 +698,77 @@ nav {
 .ev-chips { display: flex; gap: 4px; flex-wrap: wrap; }
 .ev-chip { background: var(--bg2); border: 1px solid var(--border); border-radius: 5px; padding: 2px 7px; font-size: .65rem; color: var(--text3); }
 
-/* ── JOB CARDS ── */
+/* ── MOBILE NAVIGATION ── */
+.nav-hamburger { display: none; }
+.nav-mobile-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  z-index: 1000;
+}
+.nav-link-mobile {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.nav-link-mobile:hover { background: var(--surface2); color: var(--text); }
+.nav-link-mobile.active { background: var(--surface2); color: var(--accent); font-weight: 600; }
+
+@media (max-width: 768px) {
+  .nav-hamburger { display: flex; }
+  .nav-links { display: none; }
+  .nav-right .user-chip,
+  .nav-right .nav-logout { display: none; }
+}
+
+/* ── EMPTY STATES ── */
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: var(--text3);
+}
+.empty-state h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 1rem 0 0.5rem 0;
+  color: var(--text2);
+}
+.empty-state p {
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+.empty-state .btn-primary {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9rem;
+}
+
+/* ── SKELETON CARDS ── */
+.skeleton-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ════════════════════════════── JOB CARDS ── */
 .jgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(285px, 1fr)); gap: .875rem; }
 .jcard {
   background: var(--surface); border: 1px solid var(--border);

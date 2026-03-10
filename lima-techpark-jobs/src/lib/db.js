@@ -94,17 +94,38 @@ export async function getEvents(upcomingOnly = false) {
   if (upcomingOnly) query = query.gte('date', new Date().toISOString());
   const { data, error } = await query;
   if (error) throw error;
-  return data || [];
+  
+  // Convert details array back to string for display compatibility
+  return data?.map(event => ({
+    ...event,
+    description: event.details ? event.details.join(', ') : ''
+  })) || [];
 }
 
 export async function addEvent(eventData) {
-  const { data, error } = await supabase.from('events').insert([eventData]).select().single();
+  // Convert description to details array for database
+  const eventDataForDb = {
+    ...eventData,
+    details: eventData.description 
+      ? eventData.description.split(',').map(d => d.trim()).filter(Boolean)
+      : []
+  };
+  delete eventDataForDb.description;
+  
+  const { data, error } = await supabase.from('events').insert([eventDataForDb]).select().single();
   if (error) throw error;
   return data;
 }
 
 export async function updateEvent(eventId, updateData) {
-  const { data, error } = await supabase.from('events').update(updateData).eq('id', eventId).select().single();
+  // Convert description to details array for database if present
+  const updateDataForDb = { ...updateData };
+  if (updateData.description) {
+    updateDataForDb.details = updateData.description.split(',').map(d => d.trim()).filter(Boolean);
+    delete updateDataForDb.description;
+  }
+  
+  const { data, error } = await supabase.from('events').update(updateDataForDb).eq('id', eventId).select().single();
   if (error) throw error;
   return data;
 }
@@ -121,8 +142,29 @@ export async function getActivityLog(limit = 50) {
   return data || [];
 }
 
-export async function addActivityLog(type, icon, message, subText) {
-  const { error } = await supabase.from('activity_log').insert([{ type, icon, message, sub_text: subText }]);
+export async function getCompanyActivityLog(companyId, limit = 10) {
+  try {
+    const { data, error } = await supabase
+      .from('activity_log')
+      .select('*')
+      .eq('company_id', companyId)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) throw error
+    return data || []
+
+  } catch (error) {
+    console.error('getCompanyActivityLog error:', error)
+    throw error
+  }
+}
+
+export async function addActivityLog(type, icon, message, subText, companyId = null) {
+  const logData = { type, icon, message, sub_text: subText };
+  if (companyId) logData.company_id = companyId;
+  
+  const { error } = await supabase.from('activity_log').insert([logData]);
   if (error) throw error;
 }
 
@@ -154,13 +196,36 @@ export async function getApplicationsByJob(jobId) {
 }
 
 export async function getCompanyApplications(companyId) {
-  const { data, error } = await supabase
-    .from('applications')
-    .select('*, applicants(first_name, last_name, email, phone), jobs!inner(title, company_id, dept, type)')
-    .eq('jobs.company_id', companyId)
-    .order('applied_at', { ascending: false });
-  if (error) throw error;
-  return data || [];
+  try {
+    // First get all job IDs belonging to this company
+    const { data: jobs, error: jobsError } = await supabase
+      .from('jobs')
+      .select('id')
+      .eq('company_id', companyId)
+
+    if (jobsError) throw jobsError
+    if (!jobs || jobs.length === 0) return []
+
+    const jobIds = jobs.map(j => j.id)
+
+    // Then get applications for those jobs with applicant and job details
+    const { data, error } = await supabase
+      .from('applications')
+      .select(`
+        *,
+        applicants(first_name, last_name, email, phone),
+        jobs(title, company_id, department, type)
+      `)
+      .in('job_id', jobIds)
+      .order('applied_at', { ascending: false })
+
+    if (error) throw error
+    return data || []
+
+  } catch (error) {
+    console.error('getCompanyApplications error:', error)
+    throw error
+  }
 }
 
 export async function updateApplicationStatus(applicationId, status) {
@@ -171,7 +236,7 @@ export async function updateApplicationStatus(applicationId, status) {
 
 // ── COMPANY USERS ──
 export async function getCompanyUserByEmail(email) {
-  const { data, error } = await supabase.from('company_users').select('*').eq('email', email).single();
+  const { data, error } = await supabase.from('company_users').select('*').eq('email', email).maybeSingle();
   if (error && error.code !== 'PGRST116') throw error;
   return data;
 }
@@ -198,6 +263,33 @@ export async function addAdminUser(email, fullName) {
 export async function removeAdminUser(adminId) {
   const { error } = await supabase.from('admin_users').delete().eq('id', adminId);
   if (error) throw error;
+}
+
+// ── FILE UPLOADS ──
+export async function uploadFile(file, bucket, applicantId) {
+  try {
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${applicantId}-${Date.now()}.${fileExt}` 
+    
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: true
+      })
+    
+    if (error) throw error
+    
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(fileName)
+    
+    return urlData.publicUrl
+  } catch (error) {
+    console.error('uploadFile error:', error)
+    throw error
+  }
 }
 
 // ── LIVE STATS ──

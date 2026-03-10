@@ -1,0 +1,16 @@
+{
+  "name": "Zero Effort",
+  "short_name": "Zero Effort",
+  "description": "Job portal for Zero Effort",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0e0f14",
+  "theme_color": "#6366f1",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

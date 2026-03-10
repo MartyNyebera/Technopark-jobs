@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../lib/supabase';
+import { useToast } from '../../contexts/ToastContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function ApplicantLogin() {
   const [step, setStep] = useState('choose');
@@ -11,8 +14,12 @@ export default function ApplicantLogin() {
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
   const { applicantLogin, registerApplicant } = useAuth();
   const navigate = useNavigate();
+  const { showToast } = useToast();
+  const { theme } = useTheme();
 
   async function handleLogin(e) {
     e.preventDefault();
@@ -38,12 +45,51 @@ export default function ApplicantLogin() {
     setError('');
     setLoading(true);
     try {
-      await registerApplicant(email, password, firstName, lastName, phone || '+63 9XX XXX XXXX');
+      console.log('Register form values:', { firstName, lastName, email, phone });
+      await registerApplicant(
+        firstName,    // first name from form
+        lastName,     // last name from form
+        email,        // email from form
+        phone,        // phone from form
+        password      // password from form
+      );
       navigate('/applicant/home');
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleForgotPassword(e) {
+    e.preventDefault();
+    if (!forgotEmail) {
+      setError('Please enter your email address');
+      return;
+    }
+    setError('');
+    setForgotLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+        redirectTo: `${window.location.origin}/applicant/reset-password` 
+      });
+
+      if (error) {
+        // Check if error is due to email not found
+        if (error.message.includes('User not found') || error.message.includes('Invalid email')) {
+          setError('No account found with this email');
+        } else {
+          setError('Failed to send reset link. Please try again.');
+        }
+      } else {
+        showToast('Password reset link sent! Check your email at techpark.jobs.ph@gmail.com', 'success');
+        setForgotEmail('');
+        setStep('choose');
+      }
+    } catch (err) {
+      setError('Failed to send reset link. Please try again.');
+    } finally {
+      setForgotLoading(false);
     }
   }
 
@@ -57,8 +103,13 @@ export default function ApplicantLogin() {
           <div className={`auth-step w2 ${step !== 'choose' ? 'lit' : ''}`} />
         </div>
         <div className="brand">
-          <div className="brand-icon">🏢</div>
-          <div className="brand-name">Lima TechPark<span>Jobs</span></div>
+          <div style={{ marginBottom: '0.5rem' }}>
+            <img 
+              src={theme === 'dark' ? '/zero-effort-logo-white.png' : '/zero-effort-logo-dark.png'} 
+              alt="Zero Effort" 
+              style={{ height: '60px', width: 'auto', objectFit: 'contain' }} 
+            />
+          </div>
           <div className="brand-badge">APPLICANT</div>
         </div>
 
@@ -96,7 +147,7 @@ export default function ApplicantLogin() {
           <div className="step active">
             <button className="back-btn" onClick={() => setStep('choose')}>← Back</button>
             <div className="step-h">Welcome back 👋</div>
-            <div className="step-s">Sign in to your Lima TechPark Jobs account</div>
+            <div className="step-s">Sign in to your Zero Effort account</div>
             {error && (
               <div style={{ background: 'rgba(244,63,94,.1)', border: '1px solid rgba(244,63,94,.2)', borderRadius: '8px', padding: '.6rem .8rem', marginBottom: '.875rem', fontSize: '.78rem', color: 'var(--danger)' }}>
                 {error}
@@ -115,6 +166,22 @@ export default function ApplicantLogin() {
                 {loading ? 'Signing in...' : 'Sign in →'}
               </button>
             </form>
+            <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+              <button 
+                type="button" 
+                onClick={() => { setStep('forgot'); setError(''); setForgotEmail(email); }}
+                style={{ 
+                  background: 'none', 
+                  border: 'none', 
+                  color: 'var(--accent)', 
+                  fontSize: '.75rem', 
+                  cursor: 'pointer',
+                  textDecoration: 'underline'
+                }}
+              >
+                Forgot Password?
+              </button>
+            </div>
           </div>
         )}
 
@@ -123,7 +190,7 @@ export default function ApplicantLogin() {
           <div className="step active">
             <button className="back-btn" onClick={() => setStep('choose')}>← Back</button>
             <div className="step-h">Create your account</div>
-            <div className="step-s">Join Lima TechPark Jobs for free</div>
+            <div className="step-s">Join Zero Effort for free</div>
             {error && (
               <div style={{ background: 'rgba(244,63,94,.1)', border: '1px solid rgba(244,63,94,.2)', borderRadius: '8px', padding: '.6rem .8rem', marginBottom: '.875rem', fontSize: '.78rem', color: 'var(--danger)' }}>
                 {error}
@@ -139,6 +206,35 @@ export default function ApplicantLogin() {
               <div className="fgroup"><label className="flabel">Password</label><input className="finput" type="password" placeholder="Create a strong password" value={password} onChange={e => setPassword(e.target.value)} /></div>
               <button className="btn-primary" type="submit" disabled={loading}>
                 {loading ? 'Creating...' : 'Create account →'}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* Step 2c: Forgot Password */}
+        {step === 'forgot' && (
+          <div className="step active">
+            <button className="back-btn" onClick={() => setStep('login')}>← Back</button>
+            <div className="step-h">Reset Password</div>
+            <div className="step-s">Enter your email to receive a password reset link</div>
+            {error && (
+              <div style={{ background: 'rgba(244,63,94,.1)', border: '1px solid rgba(244,63,94,.2)', borderRadius: '8px', padding: '.6rem .8rem', marginBottom: '.875rem', fontSize: '.78rem', color: 'var(--danger)' }}>
+                {error}
+              </div>
+            )}
+            <form onSubmit={handleForgotPassword}>
+              <div className="fgroup">
+                <label className="flabel">Email address</label>
+                <input 
+                  className="finput" 
+                  type="email" 
+                  placeholder="you@email.com" 
+                  value={forgotEmail} 
+                  onChange={e => setForgotEmail(e.target.value)} 
+                />
+              </div>
+              <button className="btn-primary" type="submit" disabled={forgotLoading}>
+                {forgotLoading ? 'Sending...' : 'Send Reset Link →'}
               </button>
             </form>
           </div>

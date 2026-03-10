@@ -1,14 +1,37 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { updateCompany, getCompanyJobs, getCompanyApplications } from '../../lib/db';
+import { updateCompany, getCompanyJobs, getCompanyApplications, getCompanies } from '../../lib/db';
 import { useToast } from '../../contexts/ToastContext';
 
 export default function CompanyProfile() {
   const { company, setCompany } = useOutletContext();
   const { showToast } = useToast();
+  
+  const INDUSTRIES = [
+    'Electronics & High-Precision Assembly',
+    'Automotive & Transport Equipment',
+    'Food & Beverage / FMCG',
+    'Logistics & Warehousing',
+    'Business Process Outsourcing (BPO)',
+    'Information Technology (IT)',
+    'Retail & Leisure',
+    'Hospitality',
+    'Construction & Real Estate',
+    'Utilities & Energy',
+    'Light Manufacturing',
+    'Industrial Packaging',
+    'Supply Chain & Freight Forwarding',
+    'Shared Services',
+  ];
+  
   const [form, setForm] = useState({
     name: '', industry: '', description: '', email: '', phone: '', location: '', website: '',
   });
+  const [industryInput, setIndustryInput] = useState('');
+  const [customIndustries, setCustomIndustries] = useState(
+    () => JSON.parse(localStorage.getItem('company_custom_industries') || '[]')
+  );
+  const [companies, setCompanies] = useState([]);
   const [tags, setTags] = useState([]);
   const [stats, setStats] = useState({ listings: 0, totalApps: 0, accepted: 0 });
 
@@ -23,14 +46,17 @@ export default function CompanyProfile() {
       location: company.location || '',
       website: company.website || '',
     });
+    setIndustryInput(company.industry || '');
     setTags(company.tags || []);
 
     async function loadStats() {
       try {
-        const [jobs, apps] = await Promise.all([
+        const [jobs, apps, allCompanies] = await Promise.all([
           getCompanyJobs(company.id),
           getCompanyApplications(company.id),
+          getCompanies(),
         ]);
+        setCompanies(allCompanies);
         setStats({
           listings: jobs.filter(j => j.status === 'active').length,
           totalApps: apps.length,
@@ -41,7 +67,16 @@ export default function CompanyProfile() {
     loadStats();
   }, [company]);
 
-  function handleChange(field, value) { setForm(prev => ({ ...prev, [field]: value })); }
+  function handleChange(field, value) { 
+    if (field === 'industry') {
+      setIndustryInput(value);
+    }
+    setForm(prev => ({ ...prev, [field]: value })); 
+  }
+
+  // Get existing industries from companies in database
+  const existingIndustries = [...new Set(companies.map(c => c.industry).filter(Boolean))];
+  const allIndustries = [...new Set([...INDUSTRIES, ...existingIndustries, ...customIndustries])];
 
   function addTag(e) {
     if (e.key === 'Enter') {
@@ -58,7 +93,14 @@ export default function CompanyProfile() {
 
   async function saveProfile() {
     try {
-      const updated = await updateCompany(company.id, { ...form, tags });
+      // Auto-save custom industry on submit
+      if (industryInput && !allIndustries.includes(industryInput)) {
+        const updated = [...customIndustries, industryInput];
+        setCustomIndustries(updated);
+        localStorage.setItem('company_custom_industries', JSON.stringify(updated));
+      }
+      
+      const updated = await updateCompany(company.id, { ...form, industry: industryInput, tags });
       setCompany(prev => ({ ...prev, ...updated }));
       showToast('Profile saved successfully!');
     } catch (err) {
@@ -77,6 +119,7 @@ export default function CompanyProfile() {
       location: company.location || '',
       website: company.website || '',
     });
+    setIndustryInput(company.industry || '');
     setTags(company.tags || []);
   }
 
@@ -105,11 +148,19 @@ export default function CompanyProfile() {
           <div className="frow">
             <div className="fgroup"><label className="flabel">Company Name</label><input className="finput" value={form.name} onChange={e => handleChange('name', e.target.value)} /></div>
             <div className="fgroup"><label className="flabel">Industry</label>
-              <select className="fselect" value={form.industry} onChange={e => handleChange('industry', e.target.value)}>
-                <option>Software Development</option><option>BPO / Customer Support</option>
-                <option>Fintech</option><option>E-commerce</option>
-                <option>Game Development</option><option>Cybersecurity</option>
-              </select>
+              <input
+                className="finput"
+                list="industry-options"
+                placeholder="Select or type industry…"
+                autoComplete="off"
+                value={industryInput}
+                onChange={e => handleChange('industry', e.target.value)}
+              />
+              <datalist id="industry-options">
+                {allIndustries.map(ind => (
+                  <option key={ind} value={ind} />
+                ))}
+              </datalist>
             </div>
           </div>
           <div className="fgroup"><label className="flabel">Company Description</label>

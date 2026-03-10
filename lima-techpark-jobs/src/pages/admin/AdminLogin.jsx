@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -9,6 +10,7 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const { adminLogin } = useAuth();
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   async function handleLogin(e) {
     e.preventDefault();
@@ -35,8 +37,13 @@ export default function AdminLogin() {
           <div className="auth-step w2 lit" />
         </div>
         <div className="brand">
-          <div className="brand-icon">🏢</div>
-          <div className="brand-name">Lima TechPark<span>Jobs</span></div>
+          <div style={{ marginBottom: '0.5rem' }}>
+            <img 
+              src={theme === 'dark' ? '/zero-effort-logo-white.png' : '/zero-effort-logo-dark.png'} 
+              alt="Zero Effort" 
+              style={{ height: '60px', width: 'auto', objectFit: 'contain' }} 
+            />
+          </div>
           <div className="brand-badge">ADMIN</div>
         </div>
         <div className="step active">
@@ -50,7 +57,7 @@ export default function AdminLogin() {
           <form onSubmit={handleLogin}>
             <div className="fgroup">
               <label className="flabel">Email address</label>
-              <input className="finput" type="email" placeholder="admin@limatechpark.com" value={email} onChange={e => setEmail(e.target.value)} />
+              <input className="finput" type="email" placeholder="admin@zero-effort.com" value={email} onChange={e => setEmail(e.target.value)} />
             </div>
             <div className="fgroup">
               <label className="flabel">Password</label>

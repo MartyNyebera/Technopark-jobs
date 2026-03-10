@@ -6,7 +6,7 @@ const tickerItems = [
   'Oversee Job Postings & Events',
   'Admin Account Management',
   'Activity Log & Monitoring',
-  'Lima Techno Park Admin Hub',
+  'Zero Effort Admin Hub',
 ];
 
 const title = [
@@ -21,11 +21,12 @@ export default function AdminLanding() {
   return (
     <Landing
       portalType="admin"
-      badge="Lima Techno Park · Admin Portal"
+      badge="Zero Effort · Admin Portal"
       title={title}
-      description="The official admin dashboard for Lima Techno Park. Manage tenants, oversee job postings, coordinate events — all from one centralized hub."
+      description="The official admin dashboard for Zero Effort. Manage tenants, oversee job postings, coordinate events — all from one centralized hub."
       buttonText="Admin Sign In"
       tickerItems={tickerItems}
+      showLogo={true}
     />
   );
 }

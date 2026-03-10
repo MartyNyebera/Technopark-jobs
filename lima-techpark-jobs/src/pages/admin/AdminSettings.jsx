@@ -8,6 +8,7 @@ import Modal from '../../components/Modal';
 export default function AdminSettings() {
   const [admins, setAdmins] = useState([]);
   const [modal, setModal] = useState({ type: null, data: null });
+  const [deleting, setDeleting] = useState(false);
   const { user } = useAuth();
   const { showToast } = useToast();
 
@@ -24,44 +25,139 @@ export default function AdminSettings() {
 
   function closeModal() { setModal({ type: null, data: null }); }
 
-  async function handleCreateAdmin(formData) {
-    try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: { data: { full_name: formData.fullName } }
-      });
-      if (authError) {
-        if (authError.message.includes('User already registered')) throw new Error('An account with this email already exists');
-        throw authError;
-      }
+  async function createAdminAccount(email, password, fullName) {
+  try {
+    // Log for debugging
+    console.log('Creating admin account for:', email, 'with password length:', password.length);
 
-      await addAdminUser(formData.email, formData.fullName);
-      await addActivityLog('admin', '👤', `Admin account created for ${formData.fullName}`, 'Admin · System');
-      closeModal();
-      showToast('Admin account created successfully!');
-      loadAdmins();
-    } catch (err) {
+    // Create admin account via local API (bypasses rate limits)
+    const response = await fetch('http://localhost:3002/api/create-account', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email,
+        password: password,
+        metadata: { full_name: fullName }
+      })
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      if (result.error?.includes('User already registered') || result.error?.includes('duplicate')) {
+        throw new Error('An account with this email already exists');
+      } else {
+        throw new Error(result.error);
+      }
+    }
+
+    // Insert into admin_users table
+    const { error: dbError } = await supabase
+      .from('admin_users')
+      .insert([{
+        email: email,
+        password_hash: 'hash_stored_in_auth',
+        full_name: fullName
+      }]);
+
+    if (dbError) throw dbError;
+
+    // Log activity
+    await supabase.from('activity_log').insert([{
+      type: 'admin',
+      icon: '👤',
+      message: `New admin account created for ${fullName}`,
+      sub_text: 'Admin · System'
+    }]);
+
+    return { success: true };
+
+  } catch (error) {
+    console.error('createAdminAccount error:', error);
+    throw error;
+  }
+}
+
+async function handleCreateAdmin(formData) {
+  try {
+    await createAdminAccount(formData.email, formData.password, formData.fullName);
+    closeModal();
+    showToast('Admin account created successfully!');
+    loadAdmins();
+  } catch (err) {
+    if (err.message.includes('User already registered')) {
+      showToast('An account with this email already exists');
+    } else {
       showToast(err.message || 'Error creating admin account');
     }
   }
+}
 
   async function handleDeleteAdmin(admin) {
-    if (user?.email === admin.email) {
-      showToast('You cannot delete your own account');
-      return;
-    }
-    try {
-      await removeAdminUser(admin.id);
-      await supabase.rpc('admin_delete_user', { user_email: admin.email }).catch(() => {});
-      await addActivityLog('admin', '🗑️', `Admin account deleted: ${admin.email}`, 'Admin · System');
-      closeModal();
-      showToast('Admin account deleted successfully');
-      loadAdmins();
-    } catch (err) {
-      showToast('Error deleting admin account');
-    }
+  // Check if trying to delete own account
+  if (user?.email === admin.email) {
+    showToast('You cannot delete your own account');
+    return;
   }
+
+  setDeleting(true);
+  try {
+    // Log for debugging
+    console.log('Deleting admin account with ID:', admin.id, 'email:', admin.email);
+
+    // Get user's auth ID first
+    const userResponse = await fetch('http://localhost:3002/api/get-user-by-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: admin.email })
+    });
+
+    const userResult = await userResponse.json();
+    if (!userResponse.ok) {
+      console.warn('Could not find auth user, proceeding with database deletion only');
+    } else {
+      // Delete auth account via API
+      const deleteResponse = await fetch('http://localhost:3002/api/delete-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: userResult.user.id })
+      });
+
+      if (!deleteResponse.ok) {
+        console.warn('Failed to delete auth account, proceeding with database deletion only');
+      }
+    }
+
+    // Delete from admin_users table
+    const { error: deleteError } = await supabase
+      .from('admin_users')
+      .delete()
+      .eq('id', admin.id);
+
+    if (deleteError) {
+      console.error('Delete error:', deleteError);
+      throw deleteError;
+    }
+
+    // Log to activity_log
+    await supabase.from('activity_log').insert([{
+      type: 'warning',
+      icon: '🗑️',
+      message: `Admin account deleted: ${admin.email}`,
+      sub_text: 'Admin · System'
+    }]);
+
+    // Show success toast and refresh
+    showToast('Admin account deleted');
+    closeModal();
+    loadAdmins();
+
+  } catch (err) {
+    console.error('Failed to delete admin account:', err);
+    showToast('Failed to delete admin account. Please try again.');
+  } finally {
+    setDeleting(false);
+  }
+}
 
   return (
     <div className="pw">
@@ -119,8 +215,14 @@ export default function AdminSettings() {
               <div className="warn-box-text">Delete admin account <strong>{modal.data.email}</strong>?</div>
             </div>
             <div className="btn-row">
-              <button className="btn-confirm-danger" onClick={() => handleDeleteAdmin(modal.data)}>Delete Account</button>
-              <button className="btn-cancel" onClick={closeModal}>Cancel</button>
+              <button 
+                className="btn-confirm-danger" 
+                onClick={() => handleDeleteAdmin(modal.data)}
+                disabled={deleting}
+              >
+                {deleting ? 'Deleting...' : 'Delete Account'}
+              </button>
+              <button className="btn-cancel" onClick={closeModal} disabled={deleting}>Cancel</button>
             </div>
           </div>
         )}

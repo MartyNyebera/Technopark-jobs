@@ -34,29 +34,61 @@ export default function Home() {
   ];
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh' }}>
-      <div className="land-bg" />
-      <div className="land-mesh" />
+    <div style={{ minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
+      {/* Background elements — absolutely positioned so they don't affect layout */}
+      <div className="land-bg" style={{ position: 'absolute', inset: 0, zIndex: 0 }} />
+      <div className="land-mesh" style={{ position: 'absolute', inset: 0, zIndex: 0 }} />
       <Particles />
 
-      <div className="land-content" style={{ justifyContent: 'center', gap: '2rem' }}>
-        <div style={{ position: 'absolute', top: '1.25rem', right: '1.5rem', zIndex: 10 }}>
-          <button className="nav-theme-btn" onClick={toggleTheme}>
-            {theme === 'dark' ? '🌙' : '☀️'}
-          </button>
+      {/* Theme toggle */}
+      <button onClick={toggleTheme} style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 10 }}>
+        {theme === 'dark' ? '🌙' : '☀️'}
+      </button>
+
+      {/* Main content — centered */}
+      <div style={{
+        position: 'relative',
+        zIndex: 1,
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '40px 20px',
+        gap: '0'
+      }}>
+        {/* Badge */}
+        <div className="land-badge" style={{ marginBottom: '20px' }}>
+          Zero Effort · Jobs Portal System
         </div>
 
-        <div className="land-badge">Lima Techno Park · Jobs Portal System</div>
-        <h1 className="land-h1" style={{ marginBottom: '.5rem' }}>
-          <span className="w">Lima</span>{'\u00A0'}
-          <span className="w ac">TechPark</span>{'\u00A0'}
-          <span className="w">Jobs</span>
-        </h1>
-        <p className="land-p" style={{ marginBottom: '1.5rem' }}>
+        {/* Logo */}
+        <img
+          src={theme === 'dark' ? '/zero-effort-logo-white.png' : '/zero-effort-logo-dark.png'}
+          alt="Zero Effort"
+          style={{ width: '160px', objectFit: 'contain', marginBottom: '20px' }}
+        />
+
+        {/* Description */}
+        <p style={{
+          textAlign: 'center',
+          maxWidth: '500px',
+          marginBottom: '32px',
+          opacity: 0.7,
+          fontSize: '15px',
+          lineHeight: '1.6'
+        }}>
           Choose a portal to get started. Each portal provides a dedicated experience for its user role.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem', maxWidth: 900, width: '100%', padding: '0 1rem' }}>
+        {/* Portal Cards */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '20px',
+          width: '100%',
+          maxWidth: '900px'
+        }}>
           {portals.map((p, i) => (
             <div
               key={i}
@@ -65,7 +97,7 @@ export default function Home() {
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
                 borderRadius: 16,
-                padding: '1.5rem',
+                padding: '1.25rem',
                 cursor: 'pointer',
                 transition: 'all .2s',
                 textAlign: 'left',
@@ -74,11 +106,11 @@ export default function Home() {
               }}
               className="co-card"
             >
-              <div style={{ width: 48, height: 48, borderRadius: 12, background: p.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', marginBottom: '1rem', border: '1px solid var(--border)' }}>
+              <div style={{ width: 48, height: 48, borderRadius: 12, background: p.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', marginBottom: '0.75rem', border: '1px solid var(--border)' }}>
                 {p.emoji}
               </div>
               <div style={{ fontSize: '.95rem', fontWeight: 800, letterSpacing: '-.3px', marginBottom: '.3rem' }}>{p.title}</div>
-              <div style={{ fontSize: '.78rem', color: 'var(--text2)', lineHeight: 1.65, marginBottom: '1rem' }}>{p.desc}</div>
+              <div style={{ fontSize: '.78rem', color: 'var(--text2)', lineHeight: 1.65, marginBottom: '0.75rem' }}>{p.desc}</div>
               <div style={{ fontSize: '.78rem', fontWeight: 700, color: p.color, display: 'flex', alignItems: 'center', gap: 5 }}>
                 Enter portal <span style={{ transition: 'transform .2s' }}>→</span>
               </div>
@@ -86,8 +118,9 @@ export default function Home() {
           ))}
         </div>
 
-        <p style={{ fontSize: '.68rem', color: 'var(--text3)', marginTop: '1rem' }}>
-          Lima Techno Park · Lipa City, Batangas · Official Job Portal System
+        {/* Footer */}
+        <p style={{ marginTop: '28px', fontSize: '12px', opacity: 0.4 }}>
+          Zero Effort · Lipa City, Batangas · Official Job Portal System
         </p>
       </div>
     </div>

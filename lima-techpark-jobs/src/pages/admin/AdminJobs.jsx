@@ -1,33 +1,53 @@
 import { useState, useEffect } from 'react';
 import { getJobs, removeJob as removeJobDb, addActivityLog, formatDate } from '../../lib/db';
+import { supabase } from '../../lib/supabase';
 import { useToast } from '../../contexts/ToastContext';
 import Modal from '../../components/Modal';
 
 export default function AdminJobs() {
   const [jobs, setJobs] = useState([]);
+  const [companies, setCompanies] = useState([]);
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [selectedCompany, setSelectedCompany] = useState('all');
   const [modal, setModal] = useState({ type: null, data: null });
+  const [isLoading, setIsLoading] = useState(true);
   const { showToast } = useToast();
 
   async function loadJobs() {
+    setIsLoading(true);
     try {
       const data = await getJobs();
       setJobs(data);
     } catch (err) {
       console.error('Error loading jobs:', err);
+    } finally {
+      setIsLoading(false);
     }
   }
 
-  useEffect(() => { loadJobs(); }, []);
+  async function loadCompanies() {
+    try {
+      const { data } = await supabase.from('companies').select('id, name').eq('is_active', true).order('name');
+      setCompanies(data || []);
+    } catch (err) {
+      console.error('Error loading companies:', err);
+    }
+  }
+
+  useEffect(() => {
+    loadJobs();
+    loadCompanies();
+  }, []);
 
   const filtered = jobs.filter(j => {
     const q = search.toLowerCase();
     const matchQ = j.title?.toLowerCase().includes(q) || j.companies?.name?.toLowerCase().includes(q) || j.dept?.toLowerCase().includes(q);
+    const matchCompany = selectedCompany === 'all' || j.company_id === parseInt(selectedCompany);
     const matchType = !filterType || j.type === filterType;
     const matchStatus = !filterStatus || j.status === filterStatus.toLowerCase();
-    return matchQ && matchType && matchStatus;
+    return matchQ && matchCompany && matchType && matchStatus;
   });
 
   function getTypeClass(type) {
@@ -55,19 +75,34 @@ export default function AdminJobs() {
     }
   }
 
+  if (isLoading) return (
+    <div className="pw">
+      <div className="ph"><h2>Job Postings</h2><p>All job listings across Zero Effort companies.</p></div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ fontSize: '2rem' }}>⏳</div>
+        <p style={{ color: 'var(--text2)' }}>Loading job postings...</p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="pw">
       <div className="ph">
         <h2>Job Postings</h2>
-        <p>All job listings across Lima Techno Park companies.</p>
+        <p>All job listings across Zero Effort companies.</p>
       </div>
 
       <div className="fbar">
         <input className="fi fi-grow" placeholder="Search jobs..." value={search} onChange={e => setSearch(e.target.value)} />
+        <select className="fi" value={selectedCompany} onChange={e => setSelectedCompany(e.target.value)}>
+          <option value="all">All Companies</option>
+          {companies.map(c => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
         <select className="fi" value={filterType} onChange={e => setFilterType(e.target.value)}>
           <option value="">All types</option>
-          <option>Full-time</option><option>Part-time</option>
-          <option>Internship</option><option>Contract</option>
+          <option>Full-time</option><option>Part-time</option><option>Internship</option><option>Contract</option>
         </select>
         <select className="fi" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
           <option value="">All statuses</option>
@@ -108,8 +143,14 @@ export default function AdminJobs() {
               </td>
             </tr>
           ))}
-          {filtered.length === 0 && (
-            <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem' }}>No jobs found.</td></tr>
+          {filtered.length === 0 && !isLoading && (
+            <tr>
+              <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>🗂️</div>
+                <p>No job postings yet</p>
+                <p style={{ fontSize: '.7rem', marginTop: '0.5rem' }}>Job postings will appear here once added</p>
+              </td>
+            </tr>
           )}
         </tbody>
       </table>

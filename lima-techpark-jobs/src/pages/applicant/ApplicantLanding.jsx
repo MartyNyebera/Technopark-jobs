@@ -13,8 +13,8 @@ const tickerItems = [
 const title = [
   { text: 'Welcome' },
   { text: 'to' },
-  { text: 'Lima', accent: true },
-  { text: 'TechPark', accent: true },
+  { text: 'Zero', accent: true },
+  { text: 'Effort', accent: true },
   { text: 'Jobs' },
 ];
 
@@ -22,11 +22,12 @@ export default function ApplicantLanding() {
   return (
     <Landing
       portalType="applicant"
-      badge="Lima Techno Park · Official Career Hub"
+      badge="Zero Effort · Official Career Hub"
       title={title}
-      description="Your gateway to job opportunities inside Lima Techno Park. Browse companies, explore open roles, and apply — all in one place built just for the Park."
+      description="Your gateway to job opportunities inside Zero Effort. Browse companies, explore open roles, and apply — all in one place built just for the Park."
       buttonText="Get Started"
       tickerItems={tickerItems}
+      showLogo={true}
     />
   );
 }

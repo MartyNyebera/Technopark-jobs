@@ -6,27 +6,38 @@ import Modal from '../../components/Modal';
 
 export default function CompanyListings() {
   const { company } = useOutletContext();
-  const [listings, setListings] = useState([]);
+  const location = useLocation();
+  const [jobs, setJobs] = useState([]);
+  const [companies, setCompanies] = useState([]);
+  const [selected, setSelected] = useState(null);
   const [search, setSearch] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
+  const [filterType, setFilterType] = useState('');
   const [filterDept, setFilterDept] = useState('');
   const [modal, setModal] = useState({ type: null, data: null });
+  const [resumeFile, setResumeFile] = useState(null);
+  const [portfolioUrl, setPortfolioUrl] = useState('');
+  const [coverLetter, setCoverLetter] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { showToast } = useToast();
   const navigate = useNavigate();
 
   async function loadListings() {
     if (!company) return;
+    setIsLoading(true);
     try {
       const data = await getCompanyJobs(company.id);
-      setListings(data);
+      setJobs(data);
     } catch (err) {
       console.error('Error loading listings:', err);
+    } finally {
+      setIsLoading(false);
     }
   }
 
   useEffect(() => { loadListings(); }, [company]);
 
-  const filtered = listings.filter(j => {
+  const filtered = jobs.filter(j => {
     const q = search.toLowerCase();
     const matchQ = j.title?.toLowerCase().includes(q) || j.dept?.toLowerCase().includes(q);
     const matchSt = !filterStatus || j.status === filterStatus.toLowerCase();
@@ -51,23 +62,50 @@ export default function CompanyListings() {
 
   async function handlePostJob(formData) {
     try {
-      await addJob({
-        ...formData,
+      // Check if company data is loaded
+      if (!company?.id) {
+        showToast('Company data not loaded yet, please refresh', 'error');
+        return;
+      }
+
+      // Prepare job data with proper field mapping
+      const jobData = {
         company_id: company.id,
+        title: formData.title,
+        department: formData.department || formData.dept, // Use department field
+        type: formData.type,
+        salary: formData.sal || '—',
+        description: formData.description,
+        requirements: typeof formData.requirements === 'string' 
+          ? formData.requirements.split(',').map(r => r.trim()).filter(Boolean)
+          : formData.requirements || [],
         status: 'active',
-        posted_at: new Date().toISOString(),
-      });
-      await addActivityLog('job', '📝', `New job '${formData.title}' posted by ${company.name}`, `${company.name} · Company`);
+        posted_at: new Date().toISOString()
+      };
+
+      console.log('Submitting job with data:', jobData);
+      console.log('Company ID:', company?.id);
+
+      const result = await addJob(jobData);
+      console.log('Job created successfully:', result);
+      
+      await addActivityLog('job', '📝', `New job '${formData.title}' posted by ${company.name}`, `${company.name} · Company`, company.id);
       setModal({ type: 'success', data: { title: formData.title } });
       loadListings();
-    } catch (err) {
-      showToast('Error posting job: ' + err.message);
+    } catch (error) {
+      console.error('Add job error:', error);
+      showToast(error.message || 'Failed to create job listing', 'error');
     }
   }
 
   async function handleEditJob(jobId, formData) {
     try {
-      await updateJob(jobId, formData);
+      // Ensure department field is properly mapped
+      const updateData = {
+        ...formData,
+        department: formData.department || formData.dept
+      };
+      await updateJob(jobId, updateData);
       closeModal();
       showToast('Listing updated!');
       loadListings();
@@ -90,7 +128,7 @@ export default function CompanyListings() {
   async function handleRemove(job) {
     try {
       await removeJobDb(job.id);
-      await addActivityLog('job', '🗑️', `Job '${job.title}' removed by ${company.name}`, `${company.name} · Company`);
+      await addActivityLog('job', '🗑️', `Job '${job.title}' removed by ${company.name}`, `${company.name} · Company`, company.id);
       closeModal();
       showToast('Listing removed.');
       loadListings();
@@ -98,6 +136,19 @@ export default function CompanyListings() {
       showToast('Error removing listing.');
     }
   }
+
+  if (isLoading) return (
+    <div className="pw">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+        <div className="ph" style={{ margin: 0 }}><h2>My Job Listings</h2><p>Manage all your active, paused, and closed postings.</p></div>
+        <button className="btn-acc" onClick={() => setModal({ type: 'post', data: null })}>+ New listing</button>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ fontSize: '2rem' }}>⏳</div>
+        <p style={{ color: 'var(--text2)' }}>Loading job listings...</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="pw">
@@ -145,8 +196,19 @@ export default function CompanyListings() {
               </td>
             </tr>
           ))}
-          {filtered.length === 0 && (
-            <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem' }}>No listings found.</td></tr>
+          {filtered.length === 0 && !isLoading && (
+            <tr>
+              <td colSpan={5}>
+                <div className="empty-state" style={{ padding: '2rem' }}>
+                  <div style={{ fontSize: '48px' }}>�</div>
+                  <h3>No job listings yet</h3>
+                  <p>Post your first job to start receiving applications</p>
+                  <button className="btn-primary" onClick={() => setModal({ type: 'post', data: null })}>
+                    Post a Job →
+                  </button>
+                </div>
+              </td>
+            </tr>
           )}
         </tbody>
       </table>
@@ -167,7 +229,7 @@ export default function CompanyListings() {
         <div className="success-wrap">
           <div className="sw-icon">🎉</div>
           <h3>Job listing posted!</h3>
-          <p><strong>{modal.data?.title}</strong> is now live on Lima TechPark Jobs.<br /><br />Applicants can start applying right away.</p>
+          <p><strong>{modal.data?.title}</strong> is now live on Zero Effort.<br /><br />Applicants can start applying right away.</p>
           <button className="btn-primary" style={{ maxWidth: 160, margin: '1.25rem auto 0', display: 'block' }} onClick={closeModal}>View listings</button>
         </div>
       </Modal>
@@ -209,14 +271,20 @@ function JobForm({ isEdit, initialData, companyName, onSubmit, onClose }) {
   function handleSubmit(e) {
     e.preventDefault();
     if (!form.title.trim()) return;
-    onSubmit({
+    
+    // Prepare form data with correct field mapping
+    const jobData = {
       title: form.title,
       dept: form.dept,
       type: form.type,
       sal: form.sal || '—',
       description: form.description,
       requirements: form.requirements.split('\n').filter(Boolean),
-    });
+      department: form.dept, // Add department field for database
+    };
+    
+    console.log('JobForm submitting data:', jobData);
+    onSubmit(jobData);
   }
 
   return (
@@ -224,7 +292,7 @@ function JobForm({ isEdit, initialData, companyName, onSubmit, onClose }) {
       <div className="m-head">
         <div>
           <div className="m-title">{isEdit ? 'Edit Listing' : 'Post a New Job'}</div>
-          <div className="m-sub">{companyName} · Lima Techno Park</div>
+          <div className="m-sub">{companyName} · Zero Effort</div>
         </div>
         <button className="m-close" type="button" onClick={onClose}>✕</button>
       </div>

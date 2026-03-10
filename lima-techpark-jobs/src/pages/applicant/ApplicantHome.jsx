@@ -48,7 +48,7 @@ export default function ApplicantHome() {
     <div className="pw">
       <div className="hero">
         <div className="hero-badge" style={{ background: 'var(--accent-d)', borderColor: 'rgba(99,102,241,.22)', color: 'var(--accent2)' }}>
-          Lima Techno Park — Official Job Portal
+          Zero Effort — Official Job Portal
         </div>
         <div className="hero-h1">
           {profile ? (
@@ -57,7 +57,7 @@ export default function ApplicantHome() {
             <>Your next role is<br />inside the <span className="ac">Park.</span></>
           )}
         </div>
-        <div className="hero-p">Browse all open positions across Lima Techno Park — curated, focused, and updated in real time.</div>
+        <div className="hero-p">Browse all open positions across Zero Effort — curated, focused, and updated in real time.</div>
         <div className="hero-btns">
           <button className="btn-acc" onClick={() => navigate('/applicant/jobs')}>Browse open roles</button>
           <button className="btn-ghost" onClick={() => navigate('/applicant/companies')}>Explore companies</button>
@@ -110,7 +110,7 @@ export default function ApplicantHome() {
                   <div className="jcard-title">{j.title}</div>
                   <div className="jcard-co">{co?.name || '—'}</div>
                   <div className="jcard-pills">
-                    <span className="pill">📍 Lima TechPark</span>
+                    <span className="pill">📍 Zero Effort</span>
                     <span className="pill">⏱ {j.type}</span>
                     <span className="pill">{j.dept}</span>
                   </div>

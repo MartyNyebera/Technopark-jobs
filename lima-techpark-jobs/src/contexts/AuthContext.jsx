@@ -29,7 +29,7 @@ export function AuthProvider({ children }) {
       .from('admin_users')
       .select('*')
       .eq('email', email)
-      .single();
+      .maybeSingle();
 
     if (adminError || !adminData) throw new Error('No admin account found with this email');
     setProfile({ ...adminData, role: 'admin' });
@@ -44,7 +44,7 @@ export function AuthProvider({ children }) {
       .from('company_users')
       .select('*')
       .eq('email', email)
-      .single();
+      .maybeSingle();
 
     if (cuError || !companyUser) throw new Error('No company account found with this email');
     setProfile({ ...companyUser, role: 'company' });
@@ -59,31 +59,70 @@ export function AuthProvider({ children }) {
       .from('applicants')
       .select('*')
       .eq('email', email)
-      .single();
+      .maybeSingle();
 
     if (apError || !applicant) throw new Error('No applicant account found with this email');
     setProfile({ ...applicant, role: 'applicant' });
     return { session: data.session, profile: applicant };
   }
 
-  async function registerApplicant(email, password, firstName, lastName, phone) {
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: `${firstName} ${lastName}` } }
-    });
-    if (authError) throw authError;
+  async function registerApplicant(firstName, lastName, email, phone, password) {
+  try {
+    // Step 1: Create Supabase Auth account via Express server
+    const response = await fetch('http://localhost:3002/api/create-account', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        password,
+        metadata: { full_name: `${firstName} ${lastName}`, role: 'applicant' }
+      })
+    })
+    const result = await response.json()
+    if (!response.ok) throw new Error(result.error)
 
-    const { data: profileData, error: profileError } = await supabase
+    console.log('Auth account created:', result.user?.id)
+
+    // Step 2: Insert into applicants table
+    const { data, error } = await supabase
       .from('applicants')
-      .insert([{ email, first_name: firstName, last_name: lastName, phone }])
+      .insert([{
+        email: email,
+        first_name: firstName,
+        last_name: lastName,
+        phone: phone || null,
+        password_hash: null
+      }])
       .select()
-      .single();
-    if (profileError) throw profileError;
+      .single()
 
-    setProfile({ ...profileData, role: 'applicant' });
-    return { authData, profileData };
+    if (error) {
+      console.error('Applicants table insert error:', error)
+      throw error
+    }
+
+    console.log('Applicant record created:', data)
+
+    // Step 3: Sign in immediately after registration
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
+    if (signInError) throw signInError
+
+    // Step 4: Set profile context
+    setProfile({
+      ...data,
+      role: 'applicant'
+    })
+
+    return { success: true }
+
+  } catch (error) {
+    console.error('registerApplicant error:', error)
+    throw error
   }
+}
 
   async function checkSession(portalType) {
     const { data: { session } } = await supabase.auth.getSession();
@@ -93,13 +132,13 @@ export function AuthProvider({ children }) {
     let profileData = null;
 
     if (portalType === 'admin') {
-      const { data } = await supabase.from('admin_users').select('*').eq('email', email).single();
+      const { data } = await supabase.from('admin_users').select('*').eq('email', email).maybeSingle();
       if (data) profileData = { ...data, role: 'admin' };
     } else if (portalType === 'company') {
-      const { data } = await supabase.from('company_users').select('*').eq('email', email).single();
+      const { data } = await supabase.from('company_users').select('*').eq('email', email).maybeSingle();
       if (data) profileData = { ...data, role: 'company' };
     } else if (portalType === 'applicant') {
-      const { data } = await supabase.from('applicants').select('*').eq('email', email).single();
+      const { data } = await supabase.from('applicants').select('*').eq('email', email).maybeSingle();
       if (data) profileData = { ...data, role: 'applicant' };
     }
 

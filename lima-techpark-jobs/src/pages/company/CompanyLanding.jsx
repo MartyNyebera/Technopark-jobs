@@ -6,7 +6,7 @@ const tickerItems = [
   'Review Applicants & Track Hiring',
   'Accept · Decline · Contact Applicants',
   'Manage Company Profile',
-  'Lima Techno Park Tenant Portal',
+  'Zero Effort Tenant Portal',
 ];
 
 const title = [
@@ -21,11 +21,12 @@ export default function CompanyLanding() {
   return (
     <Landing
       portalType="company"
-      badge="Lima Techno Park · Company Portal"
+      badge="Zero Effort · Company Portal"
       title={title}
-      description="The official company portal for Lima Techno Park. Post jobs, review applicants, and build your team — all in one dedicated space for park tenants."
+      description="The official company portal for Zero Effort. Post jobs, review applicants, and build your team — all in one dedicated space for park tenants."
       buttonText="Company Sign In"
       tickerItems={tickerItems}
+      showLogo={true}
     />
   );
 }
