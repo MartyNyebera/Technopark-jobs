@@ -1,0 +1,1951 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lima TechPark Jobs — Admin Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ── THEME ── */
+:root {
+  --accent:#6366f1; --accent2:#818cf8; --accent-d:rgba(99,102,241,.12);
+  --teal:#2dd4bf; --teal-d:rgba(45,212,191,.1);
+  --amber:#f59e0b; --success:#10b981; --danger:#f43f5e;
+  --font:'Plus Jakarta Sans',sans-serif; --mono:'JetBrains Mono',monospace;
+  --r:12px;
+}
+[data-theme="dark"] {
+  --bg:#0e0f14; --bg2:#13141a; --surface:#1a1b23; --surface2:#21222d;
+  --border:#2a2b36; --border2:#363748; --text:#e2e4f0; --text2:#9496aa; --text3:#565868;
+  --shadow:0 1px 3px rgba(0,0,0,.35),0 4px 16px rgba(0,0,0,.25);
+  --shadow-lg:0 8px 40px rgba(0,0,0,.5);
+  --hero-grad:linear-gradient(135deg,#1a1b2e 0%,#1a1b23 100%);
+}
+[data-theme="light"] {
+  --bg:#f5f5f7; --bg2:#ffffff; --surface:#ffffff; --surface2:#f0f0f5;
+  --border:#e2e2ea; --border2:#c8c8d8; --text:#111118; --text2:#5a5a72; --text3:#9898b0;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06);
+  --shadow-lg:0 8px 40px rgba(0,0,0,.12);
+  --hero-grad:linear-gradient(135deg,#eeeef8 0%,#ffffff 100%);
+}
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+@keyframes shimmer{0%,100%{opacity:.4}50%{opacity:1}}
+@keyframes particleDrift{0%{transform:translateY(0);opacity:0}10%{opacity:.5}90%{opacity:.15}100%{transform:translateY(-90vh);opacity:0}}
+@keyframes wordUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── SCREEN SYSTEM ── */
+#s-land, #s-auth, #s-app { display:none; }
+#s-land.active { display:flex;flex-direction:column;align-items:center;justify-content:center; }
+#s-auth.active { display:flex;flex-direction:column;align-items:center;justify-content:center; }
+#s-app.active  { display:block; }
+#s-land { position:fixed;inset:0;z-index:100;text-align:center;overflow:hidden;animation:fadeIn .4s ease; }
+#s-auth { position:fixed;inset:0;z-index:100;background:var(--bg);overflow:hidden;animation:fadeIn .35s ease;transition:background .25s; }
+#s-app  { position:relative;z-index:1;animation:fadeIn .35s ease; }
+
+.page { display:none; }
+.page.active { display:block; animation:fadeUp .3s ease; }
+
+/* ════════════════════════════
+   LANDING
+════════════════════════════ */
+.land-bg {
+  position:absolute;inset:0;z-index:0;
+  background:rgba(5,6,10,.65),
+    url('https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600&q=80') center/cover no-repeat;
+}
+.land-mesh {
+  position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 50%,rgba(244,63,94,.15) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 50% at 80% 55%,rgba(99,102,241,.12) 0%,transparent 55%);
+}
+.particles{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;}
+.particle{position:absolute;border-radius:50%;opacity:0;animation:particleDrift linear infinite;}
+
+.land-content{position:relative;z-index:2;max-width:680px;padding:2rem;}
+.land-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  background:rgba(244,63,94,.18);border:1px solid rgba(244,63,94,.35);
+  backdrop-filter:blur(10px);color:#fca5a5;
+  border-radius:999px;padding:5px 16px;
+  font-size:.72rem;font-weight:600;letter-spacing:.06em;
+  margin-bottom:1.5rem;animation:fadeUp .7s ease .4s both;
+}
+.land-badge::before{content:'▲';font-size:.5rem;color:#f43f5e;}
+.land-h1{font-size:clamp(2rem,6vw,4rem);font-weight:800;line-height:1.08;letter-spacing:-.03em;color:#fff;margin-bottom:1.2rem;text-shadow:0 2px 30px rgba(0,0,0,.4);}
+.land-h1 .w{display:inline-block;opacity:0;transform:translateY(18px);animation:wordUp .55s ease forwards;}
+.land-h1 .w:nth-child(1){animation-delay:.25s}
+.land-h1 .w:nth-child(2){animation-delay:.37s}
+.land-h1 .w:nth-child(3){animation-delay:.49s}
+.land-h1 .w:nth-child(4){animation-delay:.61s}
+.land-h1 .w:nth-child(5){animation-delay:.73s}
+.land-h1 .ac{color:#a5b4fc;} .land-h1 .rc{color:#fca5a5;}
+.land-p{font-size:1rem;color:rgba(255,255,255,.7);max-width:500px;margin:0 auto 2.25rem;line-height:1.75;animation:fadeUp .7s ease .95s both;}
+.land-btns{animation:fadeUp .7s ease 1.1s both;}
+.btn-land{
+  background:linear-gradient(135deg,#f43f5e,#e11d48);color:#fff;border:none;
+  border-radius:14px;padding:.9rem 2.75rem;
+  font-family:var(--font);font-weight:700;font-size:1rem;
+  cursor:pointer;box-shadow:0 8px 28px rgba(244,63,94,.4);
+  transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden;
+}
+.btn-land::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.15),transparent);pointer-events:none;}
+.btn-land:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(244,63,94,.55);}
+.land-note{display:block;margin-top:.65rem;font-size:.72rem;color:rgba(255,255,255,.38);}
+
+.land-ticker{position:absolute;bottom:0;left:0;right:0;z-index:2;background:rgba(0,0,0,.32);backdrop-filter:blur(8px);border-top:1px solid rgba(255,255,255,.07);padding:.55rem 0;overflow:hidden;white-space:nowrap;}
+.ticker-track{display:inline-block;animation:tickerScroll 32s linear infinite;}
+.ticker-track span{font-size:.7rem;font-family:var(--mono);color:rgba(255,255,255,.45);letter-spacing:.05em;margin:0 1.5rem;}
+.ticker-track .sep{color:#f43f5e;margin:0;}
+
+/* ════════════════════════════
+   AUTH
+════════════════════════════ */
+.auth-blob{position:absolute;border-radius:50%;pointer-events:none;}
+.auth-blob.a{width:480px;height:480px;background:radial-gradient(circle,rgba(244,63,94,.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-75%,-60%);animation:shimmer 6s ease-in-out infinite;}
+.auth-blob.b{width:340px;height:340px;background:radial-gradient(circle,rgba(99,102,241,.06) 0%,transparent 70%);top:50%;left:50%;transform:translate(5%,5%);animation:shimmer 8s ease-in-out infinite reverse;}
+
+.auth-card{position:relative;z-index:2;background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:2.25rem;width:100%;max-width:400px;box-shadow:var(--shadow-lg);animation:scaleIn .4s ease;}
+
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:1.75rem;}
+.brand-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#f43f5e,#e11d48);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:0 4px 14px rgba(244,63,94,.35);flex-shrink:0;}
+.brand-name{font-size:.95rem;font-weight:800;letter-spacing:-.3px;}
+.brand-name span{color:var(--accent2);}
+.brand-badge{margin-left:auto;font-family:var(--mono);font-size:.58rem;background:rgba(244,63,94,.12);border:1px solid rgba(244,63,94,.25);color:#f43f5e;border-radius:5px;padding:2px 8px;}
+
+.step-h{font-size:1.2rem;font-weight:800;letter-spacing:-.3px;margin-bottom:.3rem;}
+.step-s{font-size:.82rem;color:var(--text2);margin-bottom:1.4rem;}
+.fgroup{margin-bottom:.875rem;}
+.flabel{display:block;font-size:.72rem;font-weight:600;color:var(--text2);margin-bottom:5px;}
+.finput,.fselect,.ftextarea{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:.65rem .9rem;color:var(--text);font-family:var(--font);font-size:.875rem;outline:none;transition:border-color .2s,box-shadow .2s;}
+.finput:focus,.fselect:focus,.ftextarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.12);}
+.finput::placeholder{color:var(--text3);}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+.ftextarea{resize:vertical;min-height:82px;}
+.fselect option{background:var(--bg2);}
+
+.btn-admin{width:100%;background:linear-gradient(135deg,#f43f5e,#e11d48);color:#fff;border:none;border-radius:10px;padding:.8rem;font-family:var(--font);font-weight:700;font-size:.875rem;cursor:pointer;transition:all .2s;margin-top:.3rem;box-shadow:0 4px 14px rgba(244,63,94,.3);}
+.btn-admin:hover{filter:brightness(1.1);transform:translateY(-1px);}
+.btn-primary{width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:.8rem;font-family:var(--font);font-weight:700;font-size:.875rem;cursor:pointer;transition:all .2s;margin-top:.3rem;box-shadow:0 4px 14px rgba(99,102,241,.3);}
+.btn-primary:hover{background:#5254d4;transform:translateY(-1px);}
+.form-note{text-align:center;margin-top:.75rem;font-size:.72rem;color:var(--text3);}
+
+/* ════════════════════════════
+   NAV
+════════════════════════════ */
+nav{position:sticky;top:0;z-index:50;background:rgba(14,15,20,.87);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:58px;display:flex;align-items:center;padding:0 1.5rem;gap:1.5rem;transition:background .25s;}
+[data-theme="light"] nav{background:rgba(245,245,247,.9);}
+.nav-brand{display:flex;align-items:center;gap:9px;cursor:pointer;flex-shrink:0;}
+.nav-brand-icon{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#f43f5e,#e11d48);display:flex;align-items:center;justify-content:center;font-size:.8rem;}
+.nav-brand-name{font-size:.875rem;font-weight:800;letter-spacing:-.2px;}
+.nav-brand-name span{color:var(--accent2);}
+.nav-portal-tag{font-family:var(--mono);font-size:.58rem;background:rgba(244,63,94,.12);border:1px solid rgba(244,63,94,.25);color:#f43f5e;border-radius:5px;padding:2px 8px;margin-left:4px;}
+
+.nav-links{display:flex;align-items:center;gap:1px;}
+.nav-link{background:none;border:none;color:var(--text2);font-family:var(--font);font-size:.8rem;font-weight:500;padding:.4rem .8rem;border-radius:8px;cursor:pointer;transition:all .15s;}
+.nav-link:hover{color:var(--text);background:var(--surface2);}
+.nav-link.active{color:var(--text);background:var(--surface2);font-weight:600;}
+
+.nav-right{display:flex;align-items:center;gap:.6rem;margin-left:auto;}
+.nav-theme-btn{width:32px;height:32px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.875rem;transition:all .2s;}
+.nav-theme-btn:hover{border-color:var(--border2);}
+.user-chip{display:flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:3px 12px 3px 4px;}
+.user-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#f43f5e,#e11d48);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:800;color:#fff;}
+.user-name{font-size:.78rem;font-weight:600;}
+.nav-logout{background:none;border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-family:var(--font);font-size:.75rem;font-weight:500;color:var(--text2);cursor:pointer;transition:all .2s;}
+.nav-logout:hover{border-color:var(--danger);color:var(--danger);}
+
+/* ════════════════════════════
+   LAYOUT
+════════════════════════════ */
+.pw{max-width:1140px;margin:0 auto;padding:2rem 1.5rem;}
+.ph{margin-bottom:1.25rem;}
+.ph h2{font-size:1.25rem;font-weight:800;letter-spacing:-.4px;margin-bottom:3px;}
+.ph p{font-size:.8rem;color:var(--text2);}
+
+.hero{border-radius:18px;padding:2.5rem;margin-bottom:1.5rem;position:relative;overflow:hidden;background:var(--hero-grad);border:1px solid var(--border);}
+.hero::after{content:'';position:absolute;right:-80px;top:-80px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(244,63,94,.1) 0%,transparent 65%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.22);color:#f43f5e;border-radius:6px;padding:3px 10px;font-size:.72rem;font-weight:600;margin-bottom:1rem;font-family:var(--mono);}
+.hero-badge::before{content:'▲';font-size:.4rem;}
+.hero-h1{font-size:clamp(1.6rem,3.5vw,2.4rem);font-weight:800;line-height:1.1;letter-spacing:-.5px;margin-bottom:.65rem;}
+.hero-h1 .ac{color:var(--accent2);} .hero-h1 .rc{color:#f87171;}
+.hero-p{color:var(--text2);font-size:.875rem;max-width:500px;margin-bottom:1.75rem;line-height:1.7;}
+.hero-btns{display:flex;gap:.65rem;flex-wrap:wrap;}
+.btn-acc{background:var(--accent);color:#fff;border:none;border-radius:9px;padding:.65rem 1.4rem;font-family:var(--font);font-weight:700;font-size:.8rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 12px rgba(99,102,241,.28);}
+.btn-acc:hover{background:#5254d4;transform:translateY(-1px);}
+.btn-danger-acc{background:rgba(244,63,94,.1);color:#f43f5e;border:1px solid rgba(244,63,94,.25);border-radius:9px;padding:.65rem 1.4rem;font-family:var(--font);font-weight:700;font-size:.8rem;cursor:pointer;transition:all .2s;}
+.btn-danger-acc:hover{background:#f43f5e;color:#fff;}
+.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border2);border-radius:9px;padding:.65rem 1.4rem;font-family:var(--font);font-weight:600;font-size:.8rem;cursor:pointer;transition:all .2s;}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent2);}
+
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:.875rem;margin-bottom:2rem;}
+.scard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.1rem;transition:border-color .2s;}
+.scard:hover{border-color:var(--border2);}
+.scard-label{font-size:.7rem;color:var(--text2);margin-bottom:.3rem;}
+.scard-val{font-size:1.6rem;font-weight:800;letter-spacing:-.5px;}
+.scard-val small{font-size:.75rem;font-weight:600;margin-left:4px;}
+.scard-val .red{color:var(--danger);}
+.scard-val .grn{color:var(--success);}
+.scard-val .amb{color:var(--amber);}
+.scard-val .blu{color:var(--accent2);}
+
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem;}
+.sh-title{font-size:.8rem;font-weight:700;display:flex;align-items:center;gap:7px;}
+.sh-dot{width:6px;height:6px;border-radius:50%;background:var(--danger);flex-shrink:0;}
+.sh-more{font-size:.75rem;color:var(--accent2);font-weight:600;background:none;border:none;cursor:pointer;font-family:var(--font);}
+.sh-more:hover{color:var(--accent);}
+
+/* ── FILTER BAR ── */
+.fbar{display:flex;gap:.65rem;flex-wrap:wrap;margin-bottom:1.1rem;}
+.fi{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:.55rem .85rem;color:var(--text);font-family:var(--font);font-size:.825rem;outline:none;transition:border-color .2s;}
+.fi:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(99,102,241,.1);}
+.fi-grow{flex:1;min-width:180px;}
+.fi::placeholder{color:var(--text3);}
+.fi option{background:var(--bg2);}
+
+/* ════════════════════════════
+   COMPANY CARDS (grid)
+════════════════════════════ */
+.co-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:.875rem;}
+.co-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;transition:all .2s;position:relative;overflow:hidden;}
+.co-card:hover{border-color:var(--border2);box-shadow:var(--shadow);}
+.co-card.disabled{opacity:.55;}
+.co-card-stripe{position:absolute;top:0;left:0;right:0;height:2.5px;}
+.co-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:.875rem;}
+.co-logo{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:800;border:1px solid var(--border);flex-shrink:0;}
+.co-info{flex:1;}
+.co-name{font-size:.9rem;font-weight:800;letter-spacing:-.2px;margin-bottom:2px;}
+.co-ind{font-size:.72rem;color:var(--text2);}
+.co-access{display:inline-flex;align-items:center;gap:5px;font-size:.65rem;font-weight:700;padding:3px 9px;border-radius:6px;margin-left:auto;flex-shrink:0;}
+.ca-active{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);color:var(--success);}
+.ca-disabled{background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.2);color:var(--danger);}
+.ca-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+.co-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.875rem;}
+.co-stat{text-align:center;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.45rem;}
+.co-stat-val{font-size:.95rem;font-weight:800;letter-spacing:-.3px;}
+.co-stat-label{font-size:.6rem;color:var(--text3);margin-top:1px;}
+
+.co-desc{font-size:.75rem;color:var(--text2);line-height:1.6;margin-bottom:.875rem;}
+.co-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:.875rem;}
+.co-tag{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:2px 7px;font-size:.62rem;color:var(--text3);}
+
+.co-actions{display:flex;gap:.5rem;}
+.co-btn{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:5px 10px;font-size:.72rem;font-weight:600;color:var(--text2);cursor:pointer;font-family:var(--font);transition:all .2s;text-align:center;}
+.co-btn:hover{border-color:var(--accent2);color:var(--accent2);}
+.co-btn.danger:hover{border-color:var(--danger);color:var(--danger);}
+.co-btn.warn:hover{border-color:var(--amber);color:var(--amber);}
+.co-btn.success:hover{border-color:var(--success);color:var(--success);}
+
+/* ════════════════════════════
+   JOB POSTINGS TABLE
+════════════════════════════ */
+.listings-table{width:100%;border-collapse:separate;border-spacing:0 .4rem;}
+.listings-table th{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:.5rem 1rem;text-align:left;}
+.listings-table td{padding:.85rem 1rem;background:var(--surface);font-size:.82rem;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.listings-table td:first-child{border-left:1px solid var(--border);border-radius:var(--r) 0 0 var(--r);}
+.listings-table td:last-child{border-right:1px solid var(--border);border-radius:0 var(--r) var(--r) 0;}
+.listings-table tr:hover td{border-color:var(--border2);background:var(--surface2);}
+.job-dept-pill{background:var(--accent-d);border:1px solid rgba(99,102,241,.2);color:var(--accent2);border-radius:5px;padding:2px 8px;font-size:.65rem;font-weight:600;display:inline-block;margin-top:3px;}
+.job-title-cell{font-weight:700;}
+.job-type-pill{font-size:.65rem;padding:2px 8px;border-radius:5px;font-weight:600;display:inline-block;}
+.jt-full{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);color:var(--success);}
+.jt-intern{background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);color:var(--accent2);}
+.jt-part{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);color:var(--amber);}
+.jt-contract{background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.2);color:var(--danger);}
+.listing-status{display:inline-flex;align-items:center;gap:5px;font-size:.7rem;font-weight:600;padding:3px 9px;border-radius:6px;}
+.ls-active{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);color:var(--success);}
+.ls-paused{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);color:var(--amber);}
+.ls-closed{background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.2);color:var(--danger);}
+.ls-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+.tbl-actions{display:flex;gap:5px;}
+.tbl-btn{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:.7rem;font-weight:600;color:var(--text2);cursor:pointer;font-family:var(--font);transition:all .2s;}
+.tbl-btn:hover{border-color:var(--accent2);color:var(--accent2);}
+.tbl-btn.danger:hover{border-color:var(--danger);color:var(--danger);}
+
+/* ════════════════════════════
+   EVENTS
+════════════════════════════ */
+.ev-row{display:flex;gap:.875rem;overflow-x:auto;padding-bottom:6px;margin-bottom:2rem;}
+.ev-row::-webkit-scrollbar{height:3px;}
+.ev-row::-webkit-scrollbar-thumb{background:var(--border2);}
+.ev-card{flex-shrink:0;width:240px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;transition:all .2s;}
+.ev-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:var(--shadow);}
+.ev-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;}
+.ev-date{font-family:var(--mono);font-size:.65rem;color:var(--accent2);}
+.ev-type{font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:5px;background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.2);}
+.ev-title{font-size:.82rem;font-weight:700;margin-bottom:3px;line-height:1.3;}
+.ev-co{font-size:.72rem;color:var(--text2);margin-bottom:.6rem;}
+.ev-chips{display:flex;gap:4px;flex-wrap:wrap;}
+.ev-chip{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:2px 7px;font-size:.65rem;color:var(--text3);}
+.ev-actions{display:flex;gap:5px;margin-top:.65rem;}
+.ev-btn{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:.68rem;font-weight:600;color:var(--text2);cursor:pointer;font-family:var(--font);transition:all .2s;text-align:center;}
+.ev-btn:hover{border-color:var(--accent);color:var(--accent2);}
+.ev-btn.danger:hover{border-color:var(--danger);color:var(--danger);}
+
+/* ════════════════════════════
+   ADMIN SETTINGS
+════════════════════════════ */
+.section{margin-bottom:2rem;}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;}
+.section-header h3{margin:0;font-size:1.1rem;font-weight:600;color:var(--text);}
+.admin-accounts-table{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.admin-accounts-table table{width:100%;border-collapse:collapse;}
+.admin-accounts-table th{background:var(--surface2);padding:1rem;text-align:left;font-size:.75rem;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);}
+.admin-accounts-table td{padding:1rem;border-bottom:1px solid var(--border);font-size:.85rem;}
+.admin-accounts-table tr:hover{background:var(--surface2);}
+.admin-actions{display:flex;gap:0.5rem;}
+.admin-actions button{padding:0.25rem 0.75rem;font-size:.75rem;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;transition:all .2s;}
+.admin-actions button:hover{background:var(--surface2);color:var(--text);}
+.admin-actions button.danger:hover{background:var(--danger-bg);border-color:var(--danger);color:var(--danger);}
+
+/* ════════════════════════════
+   ACTIVITY LOG
+════════════════════════════ */
+.log-list{display:flex;flex-direction:column;gap:.4rem;}
+.log-row{display:flex;align-items:center;gap:.875rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:.8rem 1rem;transition:border-color .2s;}
+.log-row:hover{border-color:var(--border2);}
+.log-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
+.log-icon.company{background:rgba(99,102,241,.1);}
+.log-icon.job{background:rgba(245,158,11,.1);}
+.log-icon.app{background:rgba(45,212,191,.1);}
+.log-icon.warning{background:rgba(244,63,94,.1);}
+.log-icon.event{background:rgba(16,185,129,.1);}
+.log-info{flex:1;}
+.log-main{font-size:.8rem;font-weight:600;margin-bottom:1px;}
+.log-sub{font-size:.72rem;color:var(--text2);}
+.log-time{font-size:.65rem;color:var(--text3);font-family:var(--mono);flex-shrink:0;}
+
+/* ════════════════════════════
+   MODAL
+════════════════════════════ */
+.moverlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:1rem;}
+.moverlay.open{display:flex;animation:fadeIn .2s ease;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:18px;padding:1.75rem;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:scaleIn .25s ease;}
+.modal::-webkit-scrollbar{width:3px;}
+.modal::-webkit-scrollbar-thumb{background:var(--border2);}
+.m-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;}
+.m-title{font-size:1rem;font-weight:800;letter-spacing:-.2px;margin-bottom:2px;}
+.m-sub{font-size:.75rem;color:var(--text2);}
+.m-close{width:30px;height:30px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text2);cursor:pointer;font-size:.875rem;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.m-close:hover{border-color:var(--danger);color:var(--danger);}
+.msep{display:flex;align-items:center;gap:8px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin:1.1rem 0 .875rem;}
+.msep::before,.msep::after{content:'';flex:1;height:1px;background:var(--border);}
+.success-wrap{text-align:center;padding:2rem 1rem;}
+.success-wrap .sw-icon{font-size:2.75rem;margin-bottom:.875rem;}
+.success-wrap h3{font-size:1.05rem;font-weight:800;margin-bottom:.4rem;}
+.success-wrap p{font-size:.8rem;color:var(--text2);line-height:1.65;}
+
+/* warning confirm modal */
+.warn-box{background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.2);border-radius:10px;padding:1rem;margin:1rem 0;display:flex;gap:10px;}
+.warn-box-icon{font-size:1.2rem;flex-shrink:0;}
+.warn-box-text{font-size:.8rem;color:var(--text2);line-height:1.6;}
+.warn-box-text strong{color:var(--text);}
+.btn-row{display:flex;gap:.65rem;margin-top:1rem;}
+.btn-confirm-danger{flex:1;background:#f43f5e;color:#fff;border:none;border-radius:10px;padding:.75rem;font-family:var(--font);font-weight:700;font-size:.82rem;cursor:pointer;transition:all .2s;}
+.btn-confirm-danger:hover{background:#e11d48;}
+.btn-confirm-warn{flex:1;background:var(--amber);color:#fff;border:none;border-radius:10px;padding:.75rem;font-family:var(--font);font-weight:700;font-size:.82rem;cursor:pointer;transition:all .2s;}
+.btn-confirm-warn:hover{background:#d97706;}
+.btn-cancel{flex:1;background:var(--surface2);color:var(--text);border:1px solid var(--border2);border-radius:10px;padding:.75rem;font-family:var(--font);font-weight:600;font-size:.82rem;cursor:pointer;transition:all .2s;}
+.btn-cancel:hover{border-color:var(--accent);}
+
+/* company detail modal */
+.co-detail-head{display:flex;align-items:center;gap:14px;margin-bottom:1.25rem;}
+.co-detail-logo{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;border:1px solid var(--border);flex-shrink:0;}
+.co-detail-name{font-size:1.1rem;font-weight:800;letter-spacing:-.3px;margin-bottom:3px;}
+.co-detail-ind{font-size:.78rem;color:var(--text2);}
+.detail-stat-row{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin:1rem 0;}
+.detail-stat{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:.75rem 1rem;}
+.detail-stat-label{font-size:.68rem;color:var(--text2);margin-bottom:3px;}
+.detail-stat-val{font-size:1.1rem;font-weight:800;letter-spacing:-.2px;}
+.detail-desc{font-size:.82rem;color:var(--text2);line-height:1.7;margin:.875rem 0;}
+.detail-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:1rem;}
+.detail-tag{background:var(--accent-d);border:1px solid rgba(99,102,241,.2);color:var(--accent2);border-radius:5px;padding:2px 8px;font-size:.68rem;font-weight:600;}
+.detail-info-row{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--text2);padding:.45rem 0;border-bottom:1px solid var(--border);}
+.detail-info-row:last-of-type{border-bottom:none;}
+.detail-info-row strong{color:var(--text);min-width:80px;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;}
+
+/* stagger */
+.stagger>*{opacity:0;animation:fadeUp .35s ease forwards;}
+.stagger>*:nth-child(1){animation-delay:.04s}
+.stagger>*:nth-child(2){animation-delay:.08s}
+.stagger>*:nth-child(3){animation-delay:.12s}
+.stagger>*:nth-child(4){animation-delay:.16s}
+.stagger>*:nth-child(5){animation-delay:.2s}
+.stagger>*:nth-child(6){animation-delay:.24s}
+.stagger>*:nth-child(7){animation-delay:.28s}
+
+@media(max-width:600px){
+  .frow{grid-template-columns:1fr;}
+  .hero{padding:1.75rem 1.25rem;}
+  nav{padding:0 1rem;}
+  .pw{padding:1.5rem 1rem;}
+  .listings-table th:nth-child(3),.listings-table td:nth-child(3){display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.3s ease;">
+  <div class="spinner" style="width: 40px; height: 40px; border: 3px solid var(--border); border-top: 3px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
+  <div style="color: var(--text2); font-size: 14px;">Loading...</div>
+</div>
+
+<!-- Error Message -->
+<div id="error-message" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--surface); border: 1px solid var(--danger); padding: 20px; border-radius: 8px; text-align: center; z-index: 9998; display: none;">
+  <div style="color: var(--danger); font-size: 16px; margin-bottom: 10px;">⚠️ Failed to load data</div>
+  <div style="color: var(--text2); font-size: 14px;">Please check your connection and refresh the page.</div>
+  <button onclick="location.reload()" style="margin-top: 15px; padding: 8px 16px; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer;">Refresh</button>
+</div>
+
+<style>
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+
+<!-- ══════════════════════
+     LANDING
+══════════════════════ -->
+<div id="s-land" class="active">
+  <div class="land-bg"></div>
+  <div class="land-mesh"></div>
+  <div class="particles" id="particles"></div>
+
+  <div class="land-content">
+    <div class="land-badge">Lima Techno Park · Admin Control Panel</div>
+    <h1 class="land-h1">
+      <span class="w">Park-wide</span>&nbsp;<span class="w">hiring</span>&nbsp;<span class="w rc">oversight,</span>&nbsp;<span class="w ac">fully</span>&nbsp;<span class="w ac">yours.</span>
+    </h1>
+    <p class="land-p">The central admin portal for Lima Techno Park. Monitor all companies, manage listings, oversee applicant activity, and control access — from one command center.</p>
+    <div class="land-btns">
+      <button class="btn-land" onclick="showScreen('s-auth')">Admin Sign In &nbsp;→</button>
+      <span class="land-note">Restricted access · Techno Park administrators only</span>
+    </div>
+  </div>
+
+  <div class="land-ticker">
+    <div class="ticker-track">
+      <span>▲ Portal 3 — Admin Control Panel</span><span class="sep">|</span>
+      <span>▲ 6 Companies Inside the Park</span><span class="sep">|</span>
+      <span>▲ 84 Total Active Job Listings</span><span class="sep">|</span>
+      <span>▲ Manage Access · Add or Remove Tenants</span><span class="sep">|</span>
+      <span>▲ Park-Wide Hiring Oversight</span><span class="sep">|</span>
+      <span>▲ Monitor All Activity in Real Time</span><span class="sep">|</span>
+      <span>▲ Portal 3 — Admin Control Panel</span><span class="sep">|</span>
+      <span>▲ 6 Companies Inside the Park</span><span class="sep">|</span>
+      <span>▲ 84 Total Active Job Listings</span><span class="sep">|</span>
+      <span>▲ Manage Access · Add or Remove Tenants</span><span class="sep">|</span>
+      <span>▲ Park-Wide Hiring Oversight</span><span class="sep">|</span>
+      <span>▲ Monitor All Activity in Real Time</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════
+     AUTH
+══════════════════════ -->
+<div id="s-auth">
+  <div class="auth-blob a"></div>
+  <div class="auth-blob b"></div>
+
+  <div class="auth-card">
+    <div class="brand">
+      <div class="brand-icon">🛡️</div>
+      <div class="brand-name">Lima TechPark<span>Jobs</span></div>
+      <div class="brand-badge">ADMIN</div>
+    </div>
+    <div class="step-h">Administrator Sign In</div>
+    <div class="step-s">Restricted to Lima Techno Park management</div>
+    <div class="fgroup">
+      <label class="flabel">Admin Email</label>
+      <input class="finput" type="email" id="a-email" placeholder="admin@limatechnopark.com"/>
+    </div>
+    <div class="fgroup">
+      <label class="flabel">Password</label>
+      <input class="finput" type="password" id="a-password" placeholder="••••••••"/>
+    </div>
+    <button class="btn-admin" onclick="doLogin()">Sign in to Admin Portal →</button>
+    <div class="form-note">Demo mode — any credentials work</div>
+    <div class="form-note" style="margin-top:.5rem"><span style="cursor:pointer;" onclick="showScreen('s-land')">← Back to home</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════════
+     APP
+══════════════════════ -->
+<div id="s-app">
+  <nav>
+    <div class="nav-brand" onclick="showPage('home')">
+      <div class="nav-brand-icon">🛡️</div>
+      <div class="nav-brand-name">Lima TechPark<span>Jobs</span></div>
+      <span class="nav-portal-tag">ADMIN</span>
+    </div>
+    <div class="nav-links">
+      <button class="nav-link active" id="nl-home"      onclick="showPage('home')">Overview</button>
+      <button class="nav-link"        id="nl-companies" onclick="showPage('companies')">Companies</button>
+      <button class="nav-link"        id="nl-postings"  onclick="showPage('postings')">Job Postings</button>
+      <button class="nav-link"        id="nl-events"    onclick="showPage('events')">Events</button>
+      <button class="nav-link"        id="nl-accounts"  onclick="showPage('accounts')">Admin Settings</button>
+      <button class="nav-link"        id="nl-log"       onclick="showPage('log')">Activity Log</button>
+    </div>
+    <div class="nav-right">
+      <button class="nav-theme-btn" onclick="toggleTheme()" id="nav-theme-btn">🌙</button>
+      <div class="user-chip">
+        <div class="user-av">AD</div>
+        <span class="user-name" id="u-nm">Admin</span>
+      </div>
+      <button class="nav-logout" onclick="doLogout()">Log out</button>
+    </div>
+  </nav>
+
+  <!-- OVERVIEW -->
+  <div class="page active" id="page-home">
+    <div class="pw">
+      <div class="hero">
+        <div class="hero-badge">Park Command Center</div>
+        <div class="hero-h1" id="hero-h1">Good day, <span class="rc">Administrator.</span><br/>Here's what's happening in the <span class="ac">Park.</span></div>
+        <div class="hero-p">Full oversight of all companies, job postings, and applicant activity across Lima Techno Park.</div>
+        <div class="hero-btns">
+          <button class="btn-acc" onclick="openAddCompanyModal()">+ Add company</button>
+          <button class="btn-ghost" onclick="showPage('companies')">Manage tenants →</button>
+        </div>
+      </div>
+      <div class="stat-row stagger" id="overview-stats"></div>
+      <div class="sh"><span class="sh-title"><span class="sh-dot"></span>Companies at a Glance</span><button class="sh-more" onclick="showPage('companies')">View all →</button></div>
+      <div class="co-grid stagger" id="home-co-grid" style="margin-bottom:2rem"></div>
+      <div class="sh"><span class="sh-title"><span class="sh-dot"></span>Recent Park Activity</span><button class="sh-more" onclick="showPage('log')">Full log →</button></div>
+      <div class="log-list stagger" id="home-log"></div>
+    </div>
+  </div>
+
+  <!-- COMPANIES -->
+  <div class="page" id="page-companies">
+    <div class="pw">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+        <div class="ph" style="margin:0"><h2>Park Tenants</h2><p>All companies physically operating inside Lima Techno Park.</p></div>
+        <button class="btn-acc" onclick="openAddCompanyModal()">+ Add company</button>
+      </div>
+      <div class="fbar">
+        <input class="fi fi-grow" id="cq" placeholder="Search companies…" oninput="filterCompanies()"/>
+        <select class="fi" id="c-ind" onchange="filterCompanies()">
+          <option value="">All industries</option>
+          <option>Software Development</option><option>BPO / Customer Support</option>
+          <option>Fintech</option><option>E-commerce</option>
+          <option>Game Development</option><option>Cybersecurity</option>
+        </select>
+        <select class="fi" id="c-access" onchange="filterCompanies()">
+          <option value="">All statuses</option>
+          <option value="active">Active</option>
+          <option value="disabled">Disabled</option>
+        </select>
+      </div>
+      <div class="co-grid stagger" id="co-grid"></div>
+    </div>
+  </div>
+
+  <!-- JOB POSTINGS -->
+  <div class="page" id="page-postings">
+    <div class="pw">
+      <div class="ph"><h2>All Job Postings</h2><p>Every listing across all companies inside the park.</p></div>
+      <div class="fbar">
+        <input class="fi fi-grow" id="jq" placeholder="Search by title, company, department…" oninput="filterJobs()"/>
+        <select class="fi" id="j-co" onchange="filterJobs()">
+          <option value="">All companies</option>
+        </select>
+        <select class="fi" id="j-status" onchange="filterJobs()">
+          <option value="">All statuses</option>
+          <option>Active</option><option>Paused</option><option>Closed</option>
+        </select>
+        <select class="fi" id="j-dept" onchange="filterJobs()">
+          <option value="">All departments</option>
+          <option>Engineering</option><option>Design</option>
+          <option>Operations</option><option>Marketing</option>
+        </select>
+      </div>
+      <table class="listings-table">
+        <thead>
+          <tr>
+            <th>Job Title</th>
+            <th>Company</th>
+            <th>Type</th>
+            <th>Department</th>
+            <th>Status</th>
+            <th>Posted</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="jobs-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- EVENTS -->
+  <div class="page" id="page-events">
+    <div class="pw">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+        <div class="ph" style="margin:0"><h2>Hiring Events</h2><p>Job fairs, walk-in drives, and career events at the park.</p></div>
+        <button class="btn-acc" onclick="openAddEventModal()">+ Add event</button>
+      </div>
+      <div class="ev-row stagger" id="ev-row"></div>
+
+      <div class="sh" style="margin-top:1rem"><span class="sh-title"><span class="sh-dot"></span>Past Events</span></div>
+      <div class="log-list stagger" id="past-events"></div>
+    </div>
+  </div>
+
+  <!-- ADMIN SETTINGS -->
+  <div class="page" id="page-accounts">
+    <div class="pw">
+      <div class="ph"><h2>Admin Settings</h2><p>Manage admin accounts and system settings.</p></div>
+      
+      <!-- Admin Accounts Section -->
+      <div class="section">
+        <div class="section-header">
+          <h3>Admin Accounts</h3>
+          <button class="btn-primary" onclick="showCreateAdminModal()">+ Add Admin</button>
+        </div>
+        
+        <div class="admin-accounts-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-accounts-tbody">
+              <!-- Admin accounts will be populated here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIVITY LOG -->
+  <div class="page" id="page-log">
+    <div class="pw">
+      <div class="ph"><h2>Activity Log</h2><p>Full record of all system actions across the park portal.</p></div>
+      <div class="fbar" style="margin-bottom:1rem">
+        <input class="fi fi-grow" id="lq" placeholder="Search log…" oninput="filterLog()"/>
+        <select class="fi" id="l-type" onchange="filterLog()">
+          <option value="">All types</option>
+          <option value="company">Company</option>
+          <option value="job">Job Posting</option>
+          <option value="app">Application</option>
+          <option value="event">Event</option>
+          <option value="warning">System</option>
+        </select>
+      </div>
+      <div class="log-list stagger" id="full-log"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="moverlay" id="moverlay">
+  <div class="modal"><div id="modal-body"></div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="db.js"></script>
+<script src="auth.js"></script>
+<script>
+/* ══════════════════
+   DATA - Now loaded from Supabase
+══════════════════ */
+let COMPANIES = [];
+let ALL_JOBS = [];
+let EVENTS = [];
+let ACTIVITY_LOG = [];
+
+// Load data from Supabase
+async function loadAdminData() {
+  const loadingOverlay = document.getElementById('loading-overlay');
+  const errorMessage = document.getElementById('error-message');
+  
+  try {
+    // Show loading
+    loadingOverlay.style.display = 'flex';
+    errorMessage.style.display = 'none';
+    
+    // Load all data in parallel
+    const [companies, jobs, events, activityLog] = await Promise.all([
+      getCompanies(),
+      getJobs(),
+      getEvents(),
+      getActivityLog()
+    ]);
+    
+    COMPANIES = companies.map(c => ({
+      ...c,
+      ini: c.logo_initials,
+      ind: c.industry,
+      clr: c.color,
+      bg: c.color ? c.color + '20' : 'rgba(0,0,0,0.12)',
+      jobs: 0, // Will be calculated
+      apps: 0, // Will be calculated
+      accepted: 0, // Will be calculated
+      loc: c.location,
+      since: c.joined_since ? new Date(c.joined_since).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '',
+      access: c.is_active
+    }));
+    
+    ALL_JOBS = jobs.map(j => ({
+      ...j,
+      cid: j.company_id,
+      co: j.companies?.name || 'Unknown',
+      status: j.status.charAt(0).toUpperCase() + j.status.slice(1)
+    }));
+    
+    EVENTS = events.map(e => ({
+      ...e,
+      chips: e.details || [],
+      upcoming: e.is_upcoming
+    }));
+    
+    ACTIVITY_LOG = activityLog.map(a => ({
+      ...a,
+      main: a.message,
+      sub: a.sub_text,
+      time: formatTime(a.created_at)
+    }));
+    
+    // Calculate job and application counts for companies
+    for (let company of COMPANIES) {
+      const companyJobs = ALL_JOBS.filter(j => j.company_id === company.id);
+      company.jobs = companyJobs.length;
+      // Applications would need to be calculated from applications table
+      company.apps = Math.floor(Math.random() * 50) + 10; // Placeholder
+      company.accepted = Math.floor(Math.random() * 10) + 1; // Placeholder
+    }
+    
+    // Initial render
+    renderOverview();
+    renderOverview_live();
+    renderCompanies();
+    renderPostings();
+    renderEvents();
+    renderLog();
+    
+    // Hide loading overlay
+    loadingOverlay.style.opacity = '0';
+    setTimeout(() => {
+      loadingOverlay.style.display = 'none';
+    }, 300);
+    
+  } catch (error) {
+    console.error('Error loading admin data:', error);
+    // Hide loading and show error
+    loadingOverlay.style.display = 'none';
+    errorMessage.style.display = 'block';
+  }
+}
+
+/* ══════════════════
+   THEME
+══════════════════ */
+let theme = localStorage.getItem('tp-theme') || 'dark';
+function applyTheme(t){
+  theme = t;
+  document.documentElement.setAttribute('data-theme', t);
+  const nb = document.getElementById('nav-theme-btn');
+  if(nb) nb.textContent = t === 'dark' ? '🌙' : '☀️';
+  localStorage.setItem('tp-theme', t);
+}
+function toggleTheme(){ applyTheme(theme === 'dark' ? 'light' : 'dark'); }
+document.addEventListener('DOMContentLoaded', async () => {
+  applyTheme(theme);
+  document.getElementById('moverlay').addEventListener('click', e => { if(e.target === e.currentTarget) closeModal(); });
+  
+  // Check for existing admin session
+  await checkAdminSession();
+});
+
+/* ══════════════════
+   PARTICLES
+══════════════════ */
+(function(){
+  const c = document.getElementById('particles');
+  for(let i = 0; i < 24; i++){
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const sz = Math.random()*4+2;
+    p.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;bottom:-10px;
+      animation-duration:${Math.random()*18+10}s;animation-delay:${Math.random()*15}s;
+      background:${Math.random()>.5?'#f43f5e':'#6366f1'};`;
+    c.appendChild(p);
+  }
+})();
+
+/* ══════════════════
+   SCREENS / PAGES
+══════════════════ */
+function showScreen(id){
+  ['s-land','s-auth','s-app'].forEach(s => document.getElementById(s).classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  const nl = document.getElementById('nl-'+name);
+  if(nl) nl.classList.add('active');
+  if(name === 'home')      renderOverview();
+  if(name === 'companies') renderCompanies();
+  if(name === 'postings')  renderPostings();
+  if(name === 'events')    renderEvents();
+  if(name === 'log')       renderLog();
+}
+
+/* ══════════════════
+   AUTH
+══════════════════ */
+async function doLogin(){
+  try {
+    // Authenticate with Supabase
+    const { session } = await loginUserGeneral(
+      document.getElementById('a-email').value,
+      document.getElementById('a-password').value || 'Admin@2025'
+    );
+    
+    // Get admin profile - use maybeSingle() to handle 0 results gracefully
+    const { data: adminData, error: adminError } = await window.supabaseClient
+      .from('admin_users')
+      .select('*')
+      .eq('email', document.getElementById('a-email').value)
+      .maybeSingle();
+    
+    if (adminError || !adminData) {
+      showAuthError('No admin account found with this email', 'admin');
+      await window.supabaseClient.auth.signOut();
+      return;
+    }
+    
+    // Update UI with user info
+    const name = adminData.full_name || document.getElementById('a-email').value.split('@')[0];
+    document.getElementById('u-nm').textContent = name.split(' ')[0] || 'Admin';
+    document.getElementById('hero-h1').innerHTML = `Good day, <span class="rc">Administrator.</span><br/>Here's what's happening in the <span class="ac">Park.</span>`;
+    
+    // Load data from Supabase after login
+    await loadAdminData();
+    
+    showScreen('s-app');
+    showPage('home');
+    
+  } catch (error) {
+    showAuthError(error.message, 'admin');
+  }
+}
+
+async function doLogout(){
+  await logoutUser();
+  showScreen('s-land');
+}
+
+// Check for existing session on page load
+async function checkAdminSession() {
+  const sessionData = await checkSession('admin');
+  if (sessionData) {
+    // User is already logged in
+    const name = sessionData.profile.full_name || sessionData.session.user.email.split('@')[0];
+    document.getElementById('u-nm').textContent = name.split(' ')[0] || 'Admin';
+    document.getElementById('hero-h1').innerHTML = `Good day, <span class="rc">Administrator.</span><br/>Here's what's happening in the <span class="ac">Park.</span>`;
+    
+    await loadAdminData();
+    showScreen('s-app');
+    showPage('home');
+  } else {
+    // No session found, hide loading and show landing page
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (loadingOverlay) {
+      loadingOverlay.style.display = 'none';
+    }
+  }
+}
+
+/* ══════════════════
+   OVERVIEW
+══════════════════ */
+async function renderOverview_live(){
+  try {
+    const stats = await getLiveStats();
+    const el = id => document.getElementById(id);
+    if(el('stat-total-co')) el('stat-total-co').textContent = stats.totalCompanies;
+    if(el('stat-active-co')) el('stat-active-co').textContent = stats.activeCompanies;
+    if(el('stat-total-jobs')) el('stat-total-jobs').textContent = stats.totalJobs;
+    if(el('stat-active-jobs')) el('stat-active-jobs').textContent = stats.activeJobs;
+    if(el('stat-total-apps')) el('stat-total-apps').textContent = stats.totalApplications;
+  } catch(e) { console.error('Stats error:', e); }
+}
+function renderOverview(){
+  // Load real stats from Supabase
+  loadOverviewStats();
+  loadHomeCompanies();
+  loadHomeActivity();
+}
+
+// Load overview stats from Supabase
+async function loadOverviewStats() {
+  try {
+    // Get company stats
+    const { data: companies, error: companyError } = await window.supabaseClient
+      .from('companies')
+      .select('is_active');
+    
+    // Get job stats
+    const { data: jobs, error: jobError } = await window.supabaseClient
+      .from('jobs')
+      .select('status');
+    
+    // Get application stats
+    const { count: totalApps, error: appError } = await window.supabaseClient
+      .from('applications')
+      .select('*', { count: 'exact', head: true });
+    
+    if (companyError || jobError || appError) {
+      console.error('Error loading overview stats:', { companyError, jobError, appError });
+      return;
+    }
+    
+    const totalCos = companies.length;
+    const activeCos = companies.filter(c => c.is_active).length;
+    const totalJobs = jobs.length;
+    const activeJobs = jobs.filter(j => j.status === 'active').length;
+    const disabled = totalCos - activeCos;
+
+    document.getElementById('overview-stats').innerHTML = `
+      <div class="scard"><div class="scard-label">Park Tenants</div><div class="scard-val">${totalCos}</div></div>
+      <div class="scard"><div class="scard-label">Active Companies</div><div class="scard-val"><span class="grn">${activeCos}</span></div></div>
+      <div class="scard"><div class="scard-label">Total Job Postings</div><div class="scard-val">${totalJobs}</div></div>
+      <div class="scard"><div class="scard-label">Active Listings</div><div class="scard-val"><span class="grn">${activeJobs}</span></div></div>
+      <div class="scard"><div class="scard-label">Total Applications</div><div class="scard-val">${totalApps || 0}</div></div>
+      <div class="scard"><div class="scard-label">Disabled Access</div><div class="scard-val"><span class="${disabled>0?'red':'grn'}">${disabled}</span></div></div>
+    `;
+    
+  } catch (error) {
+    console.error('Error loading overview stats:', error);
+  }
+}
+
+// Load home companies
+async function loadHomeCompanies() {
+  try {
+    const { data: companies, error } = await window.supabaseClient
+      .from('companies')
+      .select('*')
+      .eq('is_active', true)
+      .limit(6)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    document.getElementById('home-co-grid').innerHTML = companies.map(c => buildCoCard(c, true)).join('');
+    
+  } catch (error) {
+    console.error('Error loading home companies:', error);
+  }
+}
+
+// Load home activity
+async function loadHomeActivity() {
+  try {
+    const { data: activities, error } = await window.supabaseClient
+      .from('activity_log')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(5);
+    
+    if (error) throw error;
+    
+    document.getElementById('home-log').innerHTML = activities.map(buildLogRow).join('');
+    
+  } catch (error) {
+    console.error('Error loading home activity:', error);
+  }
+}
+
+/* ══════════════════
+   COMPANIES
+══════════════════ */
+function buildCoCard(c, compact=false){
+  const bg = c.color ? c.color.replace('#','rgba(').replace(/(..)(..)(..)/, (_,r,g,b)=>`rgba(${parseInt(r,16)},${parseInt(g,16)},${parseInt(b,16)},.12)`) : 'rgba(99,102,241,.12)';
+  return `
+    <div class="co-card${c.is_active?'':' disabled'}" id="cocard-${c.id}">
+      <div class="co-card-stripe" style="background:${c.color}"></div>
+      <div class="co-top">
+        <div class="co-logo" style="background:${bg};color:${c.color}">${c.logo_initials}</div>
+        <div class="co-info">
+          <div class="co-name">${c.name}</div>
+          <div class="co-ind">${c.industry}</div>
+        </div>
+        <span class="co-access ${c.is_active?'ca-active':'ca-disabled'}">
+          <span class="ca-dot"></span>${c.is_active?'Active':'Disabled'}
+        </span>
+      </div>
+      <div class="co-stats">
+        <div class="co-stat"><div class="co-stat-val" style="color:${c.color}">${c.jobs || 0}</div><div class="co-stat-label">Active Jobs</div></div>
+        <div class="co-stat"><div class="co-stat-val">${c.apps || 0}</div><div class="co-stat-label">Applicants</div></div>
+        <div class="co-stat"><div class="co-stat-val" style="color:var(--success)">${c.accepted || 0}</div><div class="co-stat-label">Hired</div></div>
+      </div>
+      ${!compact?`<div class="co-desc">${c.description}</div>
+      <div class="co-tags">${(c.tags||[]).map(t=>`<span class="co-tag">${t}</span>`).join('')}</div>`:''}
+      <div class="co-actions">
+        <button class="co-btn" onclick="openCoDetail(${c.id})">View details</button>
+        ${c.is_active
+          ? `<button class="co-btn warn" onclick="confirmDisable(${c.id})">Disable access</button>`
+          : `<button class="co-btn success" onclick="confirmEnable(${c.id})">Restore access</button>`}
+        <button class="co-btn danger" onclick="confirmRemove(${c.id})">Remove</button>
+      </div>
+    </div>`;
+}
+function renderCompanies(list = null){
+  if(!list) list = window.COMPANIES_DATA || [];
+  document.getElementById('co-grid').innerHTML = list.map(c => buildCoCard(c, false)).join('');
+}
+
+// Load companies from Supabase
+async function loadCompanies() {
+  try {
+    // Show loading state
+    const coGrid = document.getElementById('co-grid');
+    if (coGrid) {
+      coGrid.innerHTML = '<div class="loading-spinner">Loading companies...</div>';
+    }
+    
+    const { data: companies, error } = await window.supabaseClient
+      .from('companies')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    // Store companies globally
+    window.COMPANIES_DATA = companies;
+    
+    // Render companies
+    renderCompanies(companies);
+    
+  } catch (error) {
+    console.error('Error loading companies:', error);
+    const coGrid = document.getElementById('co-grid');
+    if (coGrid) {
+      coGrid.innerHTML = `
+        <div class="error-message">
+          <p>Error loading companies: ${error.message}</p>
+          <button class="btn-primary" onclick="loadCompanies()">Retry</button>
+        </div>
+      `;
+    }
+  }
+}
+function filterCompanies(){
+  const q = (document.getElementById('cq')?.value||'').toLowerCase();
+  const ind = document.getElementById('c-ind')?.value||'';
+  const acc = document.getElementById('c-access')?.value||'';
+  renderCompanies(COMPANIES.filter(c =>
+    (c.name.toLowerCase().includes(q)||c.ind.toLowerCase().includes(q)) &&
+    (!ind || c.ind === ind) &&
+    (!acc || (acc==='active'?c.access:!c.access))
+  ));
+}
+
+/* ══════════════════
+   JOB POSTINGS
+══════════════════ */
+function renderPostings(list = null){
+  if(!list) list = ALL_JOBS;
+  // populate company filter
+  const sel = document.getElementById('j-co');
+  if(sel && sel.options.length <= 1){
+    const names = [...new Set(ALL_JOBS.map(j=>j.co))];
+    names.forEach(n => { const o = document.createElement('option'); o.text = n; sel.add(o); });
+  }
+  const tbody = document.getElementById('jobs-tbody');
+  if(!list.length){
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:2rem">No postings found.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(j => {
+    const stClass = j.status==='Active'?'ls-active':j.status==='Paused'?'ls-paused':'ls-closed';
+    const typeClass = j.type==='Full-time'?'jt-full':j.type==='Internship'?'jt-intern':j.type==='Part-time'?'jt-part':'jt-contract';
+    const co = COMPANIES.find(c=>c.id===j.cid);
+    return `<tr>
+      <td><div class="job-title-cell">${j.title}</div></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:7px">
+          <div style="width:22px;height:22px;border-radius:6px;background:${co?co.bg:'var(--bg2)'};color:${co?co.clr:'var(--text2)'};display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:800;border:1px solid var(--border);flex-shrink:0">${co?co.ini:'?'}</div>
+          <span style="font-size:.8rem">${j.co}</span>
+        </div>
+      </td>
+      <td><span class="job-type-pill ${typeClass}">${j.type}</span></td>
+      <td><span class="job-dept-pill">${j.dept}</span></td>
+      <td><span class="listing-status ${stClass}"><span class="ls-dot"></span>${j.status}</span></td>
+      <td style="font-size:.72rem;color:var(--text2);font-family:var(--mono)">${j.posted}</td>
+      <td>
+        <div class="tbl-actions">
+          <button class="tbl-btn danger" onclick="confirmRemoveJob(${j.id})">Remove</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function filterJobs(){
+  const q   = (document.getElementById('jq')?.value||'').toLowerCase();
+  const co  = document.getElementById('j-co')?.value||'';
+  const st  = document.getElementById('j-status')?.value||'';
+  const dep = document.getElementById('j-dept')?.value||'';
+  renderPostings(ALL_JOBS.filter(j =>
+    (j.title.toLowerCase().includes(q)||j.co.toLowerCase().includes(q)||j.dept.toLowerCase().includes(q)) &&
+    (!co || j.co === co) &&
+    (!st || j.status === st) &&
+    (!dep || j.dept === dep)
+  ));
+}
+
+/* ══════════════════
+   EVENTS
+══════════════════ */
+function renderEvents(){
+  const upcoming = EVENTS.filter(e => e.upcoming);
+  const past     = EVENTS.filter(e => !e.upcoming);
+
+  document.getElementById('ev-row').innerHTML = upcoming.map(e => `
+    <div class="ev-card">
+      <div class="ev-top">
+        <span class="ev-date">${e.date}</span>
+        <span class="ev-type">${e.type}</span>
+      </div>
+      <div class="ev-title">${e.title}</div>
+      <div class="ev-co">${e.co}</div>
+      <div class="ev-chips">${e.chips.map(c=>`<span class="ev-chip">${c}</span>`).join('')}</div>
+      <div class="ev-actions">
+        <button class="ev-btn" onclick="openEditEventModal(${e.id})">Edit</button>
+        <button class="ev-btn danger" onclick="confirmRemoveEvent(${e.id})">Remove</button>
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('past-events').innerHTML = past.map(e => `
+    <div class="log-row">
+      <div class="log-icon event">🎪</div>
+      <div class="log-info">
+        <div class="log-main">${e.title}</div>
+        <div class="log-sub">${e.co} · ${e.chips.join(' · ')}</div>
+      </div>
+      <div class="log-time">${e.date}</div>
+    </div>
+  `).join('');
+}
+
+/* ══════════════════
+   LOG
+══════════════════ */
+function buildLogRow(a){
+  const iconClass = a.type;
+  return `<div class="log-row">
+    <div class="log-icon ${iconClass}">${a.icon}</div>
+    <div class="log-info">
+      <div class="log-main">${a.main}</div>
+      <div class="log-sub">${a.sub}</div>
+    </div>
+    <div class="log-time">${a.time}</div>
+  </div>`;
+}
+function renderLog(list = null){
+  if(!list) list = ACTIVITY_LOG;
+  document.getElementById('full-log').innerHTML = list.map(buildLogRow).join('');
+}
+function filterLog(){
+  const q  = (document.getElementById('lq')?.value||'').toLowerCase();
+  const tp = document.getElementById('l-type')?.value||'';
+  renderLog(ACTIVITY_LOG.filter(a =>
+    (a.main.toLowerCase().includes(q)||a.sub.toLowerCase().includes(q)) &&
+    (!tp || a.type === tp)
+  ));
+}
+
+/* ══════════════════
+   MODALS — COMPANY
+══════════════════ */
+function openCoDetail(cid){
+  const c = COMPANIES.find(c=>c.id===cid);
+  if(!c) return;
+  const jobs = ALL_JOBS.filter(j=>j.cid===cid);
+  document.getElementById('modal-body').innerHTML = `
+    <div class="m-head">
+      <div><div class="m-title">Company Details</div><div class="m-sub">Lima Techno Park tenant record</div></div>
+      <button class="m-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="co-detail-head">
+      <div class="co-detail-logo" style="background:${c.bg};color:${c.clr}">${c.ini}</div>
+      <div>
+        <div class="co-detail-name">${c.name}</div>
+        <div class="co-detail-ind">${c.ind}</div>
+        <span class="co-access ${c.access?'ca-active':'ca-disabled'}" style="display:inline-flex;margin-top:5px"><span class="ca-dot"></span>${c.access?'Active Tenant':'Access Disabled'}</span>
+      </div>
+    </div>
+    <div class="detail-stat-row">
+      <div class="detail-stat"><div class="detail-stat-label">Active Listings</div><div class="detail-stat-val" style="color:${c.clr}">${jobs.filter(j=>j.status==='Active').length}</div></div>
+      <div class="detail-stat"><div class="detail-stat-label">Total Postings</div><div class="detail-stat-val">${jobs.length}</div></div>
+      <div class="detail-stat"><div class="detail-stat-label">Applications</div><div class="detail-stat-val">${c.apps}</div></div>
+      <div class="detail-stat"><div class="detail-stat-label">Hired</div><div class="detail-stat-val" style="color:var(--success)">${c.accepted}</div></div>
+    </div>
+    <div class="detail-desc">${c.desc}</div>
+    <div class="detail-tags">${c.tags.map(t=>`<span class="detail-tag">${t}</span>`).join('')}</div>
+    <div class="detail-info-row"><strong>Email</strong>${c.email}</div>
+    <div class="detail-info-row"><strong>Phone</strong>${c.phone}</div>
+    <div class="detail-info-row"><strong>Office</strong>${c.loc}</div>
+    <div class="detail-info-row"><strong>Tenant Since</strong>${c.since}</div>
+    <div class="msep">Active Listings</div>
+    ${jobs.filter(j=>j.status==='Active').length
+      ? jobs.filter(j=>j.status==='Active').map(j=>`
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.8rem">
+          <span style="font-weight:600">${j.title}</span>
+          <span style="color:var(--text2)">${j.type} · ${j.dept}</span>
+        </div>`).join('')
+      : `<div style="color:var(--text3);font-size:.78rem;padding:.5rem 0">No active listings.</div>`}
+    <div style="display:flex;gap:.65rem;margin-top:1.25rem">
+      ${c.access
+        ? `<button class="btn-confirm-warn" onclick="closeModal();confirmDisable(${c.id})">Disable Access</button>`
+        : `<button class="btn-primary" style="flex:1" onclick="closeModal();confirmEnable(${c.id})">Restore Access</button>`}
+      <button class="btn-cancel" onclick="closeModal()">Close</button>
+    </div>`;
+  openModal();
+}
+
+function confirmDisable(cid){
+  const c = (window.COMPANIES_DATA || []).find(c=>c.id===cid);
+  document.getElementById('modal-body').innerHTML = `
+    <div class="m-head">
+      <div><div class="m-title">Disable Company Access</div><div class="m-sub">This will hide all their listings from applicants</div></div>
+      <button class="m-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="warn-box">
+      <div class="warn-box-icon">⚠️</div>
+      <div class="warn-box-text">
+        You are about to <strong>disable access</strong> for <strong>${c.name}</strong>.<br/><br/>
+        Their job listings will be hidden from applicants and they will no longer be able to log in to the Company Portal. This is reversible.
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-confirm-warn" onclick="disableCompany(${cid})">Yes, disable access</button>
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+    </div>`;
+  openModal();
+}
+async function disableCompany(cid){
+  try {
+    const c = (window.COMPANIES_DATA || []).find(c=>c.id===cid);
+    if(c) {
+      // Update in Supabase
+      const { error } = await window.supabaseClient
+        .from('companies')
+        .update({ is_active: false })
+        .eq('id', cid);
+      
+      if (error) throw error;
+      
+      // Update local data
+      c.is_active = false;
+      
+      // Log activity
+      await addActivityLog('warning', '⚠️', `${c.name} access disabled`, 'Admin · System');
+      
+      // Refresh UI
+      await loadCompanies();
+      renderOverview();
+      
+      closeModal();
+      showToast(`${c.name} access disabled.`);
+    }
+  } catch (error) {
+    console.error('Error disabling company:', error);
+    showToast('Error disabling company. Please try again.');
+  }
+}
+
+function confirmEnable(cid){
+  const c = COMPANIES.find(c=>c.id===cid);
+  document.getElementById('modal-body').innerHTML = `
+    <div class="m-head">
+      <div><div class="m-title">Restore Company Access</div><div class="m-sub">Re-activate their portal and listings</div></div>
+      <button class="m-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="warn-box" style="background:rgba(16,185,129,.06);border-color:rgba(16,185,129,.2)">
+      <div class="warn-box-icon">✅</div>
+      <div class="warn-box-text" style="color:var(--text2)">
+        Restore full portal access for <strong>${c.name}</strong>. Their listings will become visible to applicants again.
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" style="flex:1" onclick="enableCompany(${cid})">Yes, restore access</button>
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+    </div>`;
+  openModal();
+}
+async function enableCompany(cid){
+  const c = COMPANIES.find(c=>c.id===cid);
+  if(!c) return;
+  const btn = document.querySelector('.btn-primary[style*="flex:1"]');
+  if(btn){ btn.textContent='Restoring...'; btn.disabled=true; }
+  try {
+    const { error } = await window.supabaseClient.from('companies').update({ is_active: true }).eq('id', cid);
+    if(error) throw error;
+    c.is_active = true; c.access = true;
+    await addActivityLog('company','🏢',`${c.name} access restored`,'Admin · System');
+    closeModal();
+    renderCompanies();
+    renderOverview();
+    showToast(`${c.name} access restored.`);
+  } catch(error) {
+    console.error('Error enabling company:', error);
+    showToast('Error restoring access. Please try again.');
+    if(btn){ btn.textContent='Yes, restore access'; btn.disabled=false; }
+  }
+}
+
+function confirmRemove(cid){
+  const c = COMPANIES.find(c=>c.id===cid);
+  document.getElementById('modal-body').innerHTML = `
+    <div class="m-head">
+      <div><div class="m-title">Remove Company</div><div class="m-sub">This action is permanent</div></div>
+      <button class="m-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="warn-box">
+      <div class="warn-box-icon">🗑️</div>
+      <div class="warn-box-text">
+        <strong>Permanently remove ${c.name}</strong> from Lima Techno Park?<br/><br/>
+        All their job listings and records will be removed from the portal. This cannot be undone.
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-confirm-danger" onclick="removeCompany(${cid})">Yes, remove permanently</button>
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+    </div>`;
+  openModal();
+}
+async function removeCompany(cid){
+  const c = COMPANIES.find(c=>c.id===cid);
+  if(!c) return;
+  const btn = document.querySelector('.btn-confirm-danger');
+  if(btn){ btn.textContent='Removing...'; btn.disabled=true; }
+  try {
+    await window.supabaseClient.from('company_users').delete().eq('company_id', cid);
+    const { error } = await window.supabaseClient.from('companies').delete().eq('id', cid);
+    if(error) throw error;
+    await addActivityLog('warning','🗑️',`${c.name} removed from the park`,'Admin · System');
+    COMPANIES = COMPANIES.filter(c=>c.id!==cid);
+    ALL_JOBS = ALL_JOBS.filter(j=>j.company_id!==cid);
+    closeModal();
+    renderCompanies();
+    renderPostings();
+    renderOverview();
+    showToast(`${c.name} removed from the park.`);
+  } catch(error) {
+    console.error('Error removing company:', error);
+    showToast('Error removing company. Please try again.');
+    if(btn){ btn.textContent='Yes, remove permanently'; btn.disabled=false; }
+  }
+}
+
+function openAddCompanyModal(){
+  document.getElementById('modal-body').innerHTML = `
+    <div class="m-head">
+      <div><div class="m-title">Add New Company</div><div class="m-sub">Register a new Lima Techno Park tenant</div></div>
+      <button class="m-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="msep">Company Information</div>
+    <div class="frow">
+      <div class="fgroup"><label class="flabel">Company Name</label><input class="finput" id="nc-name" placeholder="e.g. Mitsubishi Electric PH"/></div>
+      <div class="fgroup"><label class="flabel">Industry</label>
+        <select class="fselect" id="nc-ind">
+          <option>Software Development</option><option>BPO / Customer Support</option>
+          <option>Fintech</option><option>E-commerce</option>
+          <option>Game Development</option><option>Cybersecurity</option>
+          <option>Manufacturing</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="fgroup"><label class="flabel">Company Description</label><textarea class="ftextarea" id="nc-desc" placeholder="Brief description of what this company does…"></textarea></div>
+    <div class="frow">
+      <div class="fgroup"><label class="flabel">Contact Email</label><input class="finput" id="nc-email" type="email" placeholder="hr@company.com"/></div>
+      <div class="fgroup"><label class="flabel">Contact Phone</label><input class="finput" id="nc-phone" placeholder="+63 32 XXX XXXX"/></div>
+    </div>
+    <div class="fgroup"><label class="flabel">Office Location (inside park)</label><input class="finput" id="nc-loc" placeholder="e.g. Tower 5, Floor 3"/></div>
+    <div class="fgroup"><label class="flabel">Technology / Skill Tags <span style="font-weight:400;color:var(--text3)">(comma-separated)</span></label>
+      <input class="finput" id="nc-tags" placeholder="e.g. Python, Data Science, AI"/>
+    </div>
+    <button class="btn-primary" onclick="submitNewCompany()">Add company to park →</button>`;
+  openModal();
+}
+function submitNewCompany(){
+  const name = document.getElementById('nc-name').value.trim();
+  const industry = document.getElementById('nc-ind').value;
+  const description = document.getElementById('nc-desc').value.trim();
+  const email = document.getElementById('nc-email').value.trim();
+  const phone = document.getElementById('nc-phone').value.trim();
+  const location = document.getElementById('nc-loc').value.trim();
+  const tags = document.getElementById('nc-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  
+  // Validation
+  if(!name){ showToast('Please enter a company name.'); return; }
+  if(!industry){ showToast('Please select an industry.'); return; }
+  if(!email){ showToast('Please enter a contact email.'); return; }
+  
+  // Show loading state
+  const submitBtn = document.querySelector('.btn-primary');
+  const originalText = submitBtn.textContent;
+  submitBtn.textContent = 'Adding company...';
+  submitBtn.disabled = true;
+  
+  // Generate company data
+  const colors = ['#6366f1','#06b6d4','#a855f7','#f59e0b','#10b981','#f43f5e','#ec4899','#8b5cf6'];
+  const color = colors[Math.floor(Math.random() * colors.length)];
+  const initials = name.split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
+  
+  // Save to Supabase
+  addCompany({
+    name: name,
+    industry: industry,
+    description: description || 'A new Lima Techno Park tenant.',
+    tags: tags,
+    color: color,
+    logo_initials: initials,
+    email: email,
+    phone: phone || null,
+    location: location || null,
+    joined_since: new Date().toISOString().split('T')[0],
+    is_active: true
+  }).then(async (companyData) => {
+    if (companyData) {
+      // Log activity
+      await addActivityLog('company', '🏢', `${name} added to the park`, 'Admin · System');
+      
+      // Show company account creation step
+      showCompanyAccountCreationModal(companyData);
+      
+      // Refresh companies list
+      await loadCompanies();
+      renderOverview();
+    }
+  }).catch((error) => {
+    console.error('Error adding company:', error);
+    showToast('Error adding company. Please try again.');
+  }).finally(() => {
+    submitBtn.textContent = originalText;
+    submitBtn.disabled = false;
+  });
+}
+
+// Show company account creation modal (Step A)
+function showCompanyAccountCreationModal(companyData) {
+  document.getElementById('modal-body').innerHTML = `
+    <div class="m-head">
+      <div><div class="m-title">Create Portal Account for ${companyData.name}</div><div class="m-sub">Set up login credentials for the Company Portal</div></div>
+      <button class="m-close" onclick="closeModal()">✕</button>
+    </div>
+    <form id="company-account-form" onsubmit="createCompanyAccount(event, ${companyData.id})">
+      <div class="fgroup">
+        <label class="flabel">Login Email</label>
+        <input class="finput" type="email" name="email" value="${companyData.email}" required placeholder="company@example.com">
+      </div>
+      <div class="fgroup">
+        <label class="flabel">Password</label>
+        <input class="finput" type="password" name="password" required placeholder="Enter password">
+      </div>
+      <div class="btn-row">
+        <button type="submit" class="btn-primary">Create Account</button>
+        <button type="button" class="btn-cancel" onclick="closeModal()">Skip for now</button>
+      </div>
+    </form>
+  `;
+}
+
+// Create company portal account
+async function createCompanyAccount(event, companyId) {
+  event.preventDefault();
+  const formData = new FormData(event.target);
+  const email = formData.get('email');
+  const password = formData.get('password');
+  
+  try {
+    // Create Supabase Auth account
+    const { data: authData, error: authError } = await window.supabaseClient.auth.signUp({
+      email: email,
+      password: password,
+      options: {
+        data: {
+          company_id: companyId,
+          full_name: email.split('@')[0]
+        }
+      }
+    });
+    
+    if (authError) {
+      if (authError.message.includes('User already registered')) {
+        throw new Error('An account with this email already exists');
+      }
+      throw authError;
+    }
+    
+    // Create company user record
+    const { data: userData, error: userError } = await window.supabaseClient
+      .from('company_users')
+      .insert([{
+        company_id: companyId,
+        email: email,
+        password_hash: 'hash_stored_in_auth',
+        full_name: email.split('@')[0]
+      }])
+      .select()
+      .single();
+    
+    if (userError) throw userError;
+    
+    // Get company name for logging
+    const { data: company } = await window.supabaseClient
+      .from('companies')
+      .select('name')
+      .eq('id', companyId)
+      .single();
+    
+    // Log activity
+    await addActivityLog('company', '👤', `Portal account created for ${company.name}`, 'Admin · System');
+    
+    closeModal();
+    showToast('Company portal account created successfully!');
+    
+  } catch (error) {
+    console.error('Error creating company account:', error);
+    showToast(error.message || 'Error creating company account');
+  }
+}
+
+/* ══════════════════
+   MODALS — JOBS
+══════════════════ */
+function confirmRemoveJob(jobId){
+  const j = ALL_JOBS.find(j=>j.id===jobId);
+  document.getElementById('modal-body').innerHTML = `
+    <div class="m-head">
+      <div><div class="m-title">Remove Job Listing</div><div class="m-sub">Admin override</div></div>
+      <button class="m-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="warn-box">
+      <div class="warn-box-icon">⚠️</div>
+      <div class="warn-box-text">Remove <strong>${j?.title}</strong> by <strong>${j?.co}</strong> from the park portal? This cannot be undone.</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-confirm-danger" onclick="removeJob(${jobId})">Remove listing</button>
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+    </div>`;
+  openModal();
+}
+async function removeJob(jobId){
+  const j = ALL_JOBS.find(j=>j.id===jobId);
+  const btn = document.querySelector('.btn-confirm-danger');
+  if(btn){ btn.textContent='Removing...'; btn.disabled=true; }
+  try {
+    const { error } = await window.supabaseClient.from('jobs').delete().eq('id', jobId);
+    if(error) throw error;
+    await addActivityLog('warning','🗑️',`'${j?.title}' removed from portal by admin`,`${j?.co} · Admin Override`);
+    ALL_JOBS = ALL_JOBS.filter(j=>j.id!==jobId);
+    closeModal();
+    renderPostings();
+    showToast('Listing removed.');
+  } catch(error) {
+    console.error('Error removing job:', error);
+    showToast('Error removing job. Please try again.');
+    if(btn){ btn.textContent='Remove listing'; btn.disabled=false; }
+  }
+}
+
+/* ══════════════════
+   MODALS — EVENTS
+══════════════════ */
+function openAddEventModal(){
+  document.getElementById('modal-body').innerHTML = `
+    <div class="m-head">
+      <div><div class="m-title">Add Hiring Event</div><div class="m-sub">Visible to all applicants on the park portal</div></div>
+      <button class="m-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="fgroup"><label class="flabel">Event Title</label><input class="finput" id="ev-title" placeholder="e.g. Lima TechPark Summer Job Fair"/></div>
+    <div class="frow">
+      <div class="fgroup"><label class="flabel">Event Type</label>
+        <select class="fselect" id="ev-type">
+          <option>Job Fair</option><option>Walk-in Interview</option>
+          <option>Virtual Hiring</option><option>Open House</option><option>Career Talk</option>
+        </select>
+      </div>
+      <div class="fgroup"><label class="flabel">Date</label><input class="finput" id="ev-date" placeholder="e.g. May 20, 2025"/></div>
+    </div>
+    <div class="frow">
+      <div class="fgroup"><label class="flabel">Organizer</label><input class="finput" id="ev-co" value="Lima Techno Park Admin"/></div>
+      <div class="fgroup"><label class="flabel">Time</label><input class="finput" id="ev-time" placeholder="e.g. 9:00 AM"/></div>
+    </div>
+    <div class="frow">
+      <div class="fgroup"><label class="flabel">Venue</label><input class="finput" id="ev-venue" placeholder="e.g. Event Hall A"/></div>
+      <div class="fgroup"><label class="flabel">Expected Slots/Attendees</label><input class="finput" id="ev-slots" placeholder="e.g. 100+ Slots"/></div>
+    </div>
+    <button class="btn-primary" onclick="submitEvent()">Add event →</button>`;
+  openModal();
+}
+function openEditEventModal(eid){
+  const e = EVENTS.find(e=>e.id===eid);
+  document.getElementById('modal-body').innerHTML = `
+    <div class="m-head">
+      <div><div class="m-title">Edit Event</div><div class="m-sub">${e.title}</div></div>
+      <button class="m-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="fgroup"><label class="flabel">Event Title</label><input class="finput" id="ev-title" value="${e.title}"/></div>
+    <div class="frow">
+      <div class="fgroup"><label class="flabel">Event Type</label><input class="finput" id="ev-type" value="${e.type}"/></div>
+      <div class="fgroup"><label class="flabel">Date</label><input class="finput" id="ev-date" value="${e.date}"/></div>
+    </div>
+    <div class="frow">
+      <div class="fgroup"><label class="flabel">Organizer</label><input class="finput" id="ev-co" value="${e.co}"/></div>
+      <div class="fgroup"><label class="flabel">Time</label><input class="finput" id="ev-time" value="${e.chips[0]||''}"/></div>
+    </div>
+    <div class="frow">
+      <div class="fgroup"><label class="flabel">Venue</label><input class="finput" id="ev-venue" value="${e.chips[1]||''}"/></div>
+      <div class="fgroup"><label class="flabel">Slots/Info</label><input class="finput" id="ev-slots" value="${e.chips[2]||''}"/></div>
+    </div>
+    <button class="btn-primary" onclick="saveEvent(${eid})">Save changes →</button>`;
+  openModal();
+}
+async function submitEvent(){
+  const title = document.getElementById('ev-title').value.trim();
+  if(!title){ showToast('Please enter an event title.'); return; }
+  const btn = document.querySelector('#modal-body .btn-primary');
+  if(btn){ btn.textContent='Adding...'; btn.disabled=true; }
+  const time = document.getElementById('ev-time').value;
+  const venue = document.getElementById('ev-venue').value;
+  const slots = document.getElementById('ev-slots').value;
+  const dateRaw = document.getElementById('ev-date').value;
+  try {
+    const newEvent = await addEvent({
+      title,
+      type: document.getElementById('ev-type').value,
+      date: dateRaw || null,
+      organizer: document.getElementById('ev-co').value || 'Lima Techno Park Admin',
+      details: [time, venue, slots].filter(Boolean),
+      is_upcoming: true
+    });
+    if(!newEvent) throw new Error('Failed to save event');
+    await addActivityLog('event','🎪',`Event '${title}' added to the park calendar`,'Admin · System');
+    EVENTS.unshift({ ...newEvent, co: newEvent.organizer, chips: newEvent.details || [], upcoming: true });
+    closeModal();
+    renderEvents();
+    showToast('Event added!');
+  } catch(error) {
+    console.error('Error adding event:', error);
+    showToast('Error adding event. Please try again.');
+    if(btn){ btn.textContent='Add event →'; btn.disabled=false; }
+  }
+}
+async function saveEvent(eid){
+  const e = EVENTS.find(e=>e.id===eid);
+  if(!e) return;
+  const btn = document.querySelector('#modal-body .btn-primary');
+  if(btn){ btn.textContent='Saving...'; btn.disabled=true; }
+  const time = document.getElementById('ev-time').value;
+  const venue = document.getElementById('ev-venue').value;
+  const slots = document.getElementById('ev-slots').value;
+  try {
+    const updated = await updateEvent(eid, {
+      title: document.getElementById('ev-title').value || e.title,
+      type: document.getElementById('ev-type').value || e.type,
+      date: document.getElementById('ev-date').value || null,
+      organizer: document.getElementById('ev-co').value || e.co,
+      details: [time, venue, slots].filter(Boolean)
+    });
+    if(!updated) throw new Error('Failed to update event');
+    await addActivityLog('event','✏️',`Event '${updated.title}' updated`,'Admin · System');
+    Object.assign(e, { ...updated, co: updated.organizer, chips: updated.details || [] });
+    closeModal();
+    renderEvents();
+    showToast('Event updated!');
+  } catch(error) {
+    console.error('Error updating event:', error);
+    showToast('Error updating event. Please try again.');
+    if(btn){ btn.textContent='Save changes →'; btn.disabled=false; }
+  }
+}
+function confirmRemoveEvent(eid){
+  const e = EVENTS.find(e=>e.id===eid);
+  document.getElementById('modal-body').innerHTML = `
+    <div class="m-head">
+      <div><div class="m-title">Remove Event</div><div class="m-sub">This will remove it from the applicant portal</div></div>
+      <button class="m-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="warn-box">
+      <div class="warn-box-icon">⚠️</div>
+      <div class="warn-box-text">Remove <strong>${e?.title}</strong> from the portal calendar?</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-confirm-danger" onclick="removeEvent(${eid})">Remove event</button>
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+    </div>`;
+  openModal();
+}
+async function removeEvent(eid){
+  const e = EVENTS.find(e=>e.id===eid);
+  const btn = document.querySelector('.btn-confirm-danger');
+  if(btn){ btn.textContent='Removing...'; btn.disabled=true; }
+  try {
+    const { error } = await window.supabaseClient.from('events').delete().eq('id', eid);
+    if(error) throw error;
+    await addActivityLog('event','🗑️',`Event '${e?.title}' removed from calendar`,'Admin · System');
+    EVENTS = EVENTS.filter(e=>e.id!==eid);
+    closeModal();
+    renderEvents();
+    showToast('Event removed.');
+  } catch(error) {
+    console.error('Error removing event:', error);
+    showToast('Error removing event. Please try again.');
+    if(btn){ btn.textContent='Remove event'; btn.disabled=false; }
+  }
+}
+
+/* ══════════════════
+   MODAL HELPERS
+══════════════════ */
+function openModal(){ document.getElementById('moverlay').classList.add('open'); }
+function closeModal(){ document.getElementById('moverlay').classList.remove('open'); }
+
+/* ══════════════════
+   TOAST
+══════════════════ */
+function showToast(msg){
+  let t = document.getElementById('toast');
+  if(!t){
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = `position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:.75rem 1.25rem;font-size:.8rem;font-weight:600;box-shadow:var(--shadow-lg);transition:all .3s;opacity:0;transform:translateY(8px);pointer-events:none;`;
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'translateY(0)';
+  clearTimeout(t._to);
+  t._to = setTimeout(() => { t.style.opacity='0'; t.style.transform='translateY(8px)'; }, 2800);
+}
+
+// ════════════════════════════
+// ADMIN ACCOUNT MANAGEMENT
+// ════════════════════════════ 
+// Load admin accounts when page is shown
+async function loadAdminAccounts() {
+  try {
+    const { data: admins, error } = await window.supabaseClient
+      .from('admin_users')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    const tbody = document.getElementById('admin-accounts-tbody');
+    tbody.innerHTML = admins.map(admin => `
+      <tr>
+        <td>${admin.full_name}</td>
+        <td>${admin.email}</td>
+        <td>${new Date(admin.created_at).toLocaleDateString()}</td>
+        <td>
+          <div class="admin-actions">
+            <button onclick="deleteAdminAccount(${admin.id}, '${admin.email}')">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+    
+  } catch (error) {
+    console.error('Error loading admin accounts:', error);
+    showToast('Error loading admin accounts');
+  }
+}
+
+// Show create admin modal
+function showCreateAdminModal() {
+  document.getElementById('modal-body').innerHTML = `
+    <div class="m-head">
+      <div><div class="m-title">Add Admin Account</div><div class="m-sub">Create a new administrator account</div></div>
+      <button class="m-close" onclick="closeModal()">✕</button>
+    </div>
+    <form id="create-admin-form" onsubmit="createAdminAccount(event)">
+      <div class="fgroup">
+        <label class="flabel">Full Name</label>
+        <input class="finput" type="text" name="fullName" required placeholder="Enter full name">
+      </div>
+      <div class="fgroup">
+        <label class="flabel">Email</label>
+        <input class="finput" type="email" name="email" required placeholder="admin@example.com">
+      </div>
+      <div class="fgroup">
+        <label class="flabel">Password</label>
+        <input class="finput" type="password" name="password" required placeholder="Enter password">
+      </div>
+      <div class="btn-row">
+        <button type="submit" class="btn-primary">Create Admin</button>
+        <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+      </div>
+    </form>
+  `;
+  openModal();
+}
+
+// Create admin account
+async function createAdminAccount(event) {
+  event.preventDefault();
+  const formData = new FormData(event.target);
+  const fullName = formData.get('fullName');
+  const email = formData.get('email');
+  const password = formData.get('password');
+  
+  try {
+    // Create Supabase Auth account
+    const { data: authData, error: authError } = await window.supabaseClient.auth.signUp({
+      email: email,
+      password: password,
+      options: {
+        data: {
+          full_name: fullName
+        }
+      }
+    });
+    
+    if (authError) {
+      if (authError.message.includes('User already registered')) {
+        throw new Error('An account with this email already exists');
+      }
+      throw authError;
+    }
+    
+    // Create admin user record
+    const { data: adminData, error: adminError } = await window.supabaseClient
+      .from('admin_users')
+      .insert([{
+        email: email,
+        password_hash: 'hash_stored_in_auth',
+        full_name: fullName
+      }])
+      .select()
+      .single();
+    
+    if (adminError) throw adminError;
+    
+    // Log the activity
+    await addActivityLog('admin', '👤', `Admin account created for ${fullName}`, 'Admin · System');
+    
+    closeModal();
+    showToast('Admin account created successfully!');
+    loadAdminAccounts();
+    
+  } catch (error) {
+    console.error('Error creating admin account:', error);
+    showToast(error.message || 'Error creating admin account');
+  }
+}
+
+// Delete admin account
+async function deleteAdminAccount(adminId, adminEmail) {
+  // Get current user email to prevent self-deletion
+  const currentUser = await getCurrentUser();
+  if (currentUser.email === adminEmail) {
+    showToast('You cannot delete your own account');
+    return;
+  }
+  
+  document.getElementById('modal-body').innerHTML = `
+    <div class="m-head">
+      <div><div class="m-title">Delete Admin Account</div><div class="m-sub">This action cannot be undone</div></div>
+      <button class="m-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="warn-box">
+      <div class="warn-box-icon">⚠️</div>
+      <div class="warn-box-text">Delete admin account <strong>${adminEmail}</strong>?</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-confirm-danger" onclick="confirmDeleteAdmin(${adminId}, '${adminEmail}')">Delete Account</button>
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+    </div>
+  `;
+  openModal();
+}
+
+// Confirm delete admin account
+async function confirmDeleteAdmin(adminId, adminEmail) {
+  try {
+    // Delete from admin_users table
+    const { error: adminError } = await window.supabaseClient
+      .from('admin_users')
+      .delete()
+      .eq('id', adminId);
+    
+    if (adminError) throw adminError;
+    
+    // Delete from auth.users (this requires admin privileges)
+    const { error: authError } = await window.supabaseClient.rpc('admin_delete_user', {
+      user_email: adminEmail
+    });
+    
+    // Log the activity
+    await addActivityLog('admin', '🗑️', `Admin account deleted: ${adminEmail}`, 'Admin · System');
+    
+    closeModal();
+    showToast('Admin account deleted successfully');
+    loadAdminAccounts();
+    
+  } catch (error) {
+    console.error('Error deleting admin account:', error);
+    showToast('Error deleting admin account');
+  }
+}
+
+// Add activity log entry
+async function addActivityLog(type, icon, message, subText) {
+  try {
+    const { error } = await window.supabaseClient
+      .from('activity_log')
+      .insert([{
+        type: type,
+        icon: icon,
+        message: message,
+        sub_text: subText
+      }]);
+    
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error adding activity log:', error);
+  }
+}
+
+// Update showPage to load admin accounts when needed
+const originalShowPage = showPage;
+showPage = function(name) {
+  originalShowPage(name);
+  if (name === 'accounts') {
+    loadAdminAccounts();
+  }
+};
+</script>
+</body>
+</html>

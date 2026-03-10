@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Connection Test - Lima TechPark Jobs</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #555;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .data-list {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+        .data-item {
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            border-radius: 4px;
+        }
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .connection-status {
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        .disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Supabase Connection Test - Lima TechPark Jobs</h1>
+        
+        <div id="connection-status" class="connection-status loading">
+            Testing connection...
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">
+                Companies Table
+                <span id="companies-status" class="status loading">Loading...</span>
+            </div>
+            <div id="companies-count"></div>
+            <ul id="companies-list" class="data-list"></ul>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">
+                Jobs Table
+                <span id="jobs-status" class="status loading">Loading...</span>
+            </div>
+            <div id="jobs-count"></div>
+            <ul id="jobs-list" class="data-list"></ul>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">
+                Events Table
+                <span id="events-status" class="status loading">Loading...</span>
+            </div>
+            <div id="events-count"></div>
+            <ul id="events-list" class="data-list"></ul>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">
+                Activity Log Table
+                <span id="activity-status" class="status loading">Loading...</span>
+            </div>
+            <div id="activity-count"></div>
+            <ul id="activity-list" class="data-list"></ul>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">
+                Applicants Table
+                <span id="applicants-status" class="status loading">Loading...</span>
+            </div>
+            <div id="applicants-count"></div>
+            <ul id="applicants-list" class="data-list"></ul>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">
+                Applications Table
+                <span id="applications-status" class="status loading">Loading...</span>
+            </div>
+            <div id="applications-count"></div>
+            <ul id="applications-list" class="data-list"></ul>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+    <script>
+        // Test function to check table data
+        async function testTable(tableName, statusId, countId, listId, displayField = 'name') {
+            try {
+                const { data, error, count } = await supabase
+                    .from(tableName)
+                    .select('*', { count: 'exact', head: true });
+
+                if (error) {
+                    document.getElementById(statusId).className = 'status error';
+                    document.getElementById(statusId).textContent = '❌ Error';
+                    document.getElementById(countId).innerHTML = `<div class="error-message">Error: ${error.message}</div>`;
+                    return false;
+                }
+
+                // Get actual data for display (limit to 5 items)
+                const { data: sampleData, error: sampleError } = await supabase
+                    .from(tableName)
+                    .select('*')
+                    .limit(5);
+
+                if (sampleError) {
+                    document.getElementById(statusId).className = 'status error';
+                    document.getElementById(statusId).textContent = '❌ Error';
+                    document.getElementById(countId).innerHTML = `<div class="error-message">Error: ${sampleError.message}</div>`;
+                    return false;
+                }
+
+                document.getElementById(statusId).className = 'status success';
+                document.getElementById(statusId).textContent = '✅ OK';
+                document.getElementById(countId).innerHTML = `<strong>${count} records found</strong>`;
+
+                // Display sample data
+                const listElement = document.getElementById(listId);
+                listElement.innerHTML = '';
+                
+                if (sampleData && sampleData.length > 0) {
+                    sampleData.forEach(item => {
+                        const li = document.createElement('li');
+                        li.className = 'data-item';
+                        
+                        let displayText = '';
+                        if (item[displayField]) {
+                            displayText = item[displayField];
+                        } else if (item.title) {
+                            displayText = item.title;
+                        } else if (item.message) {
+                            displayText = item.message;
+                        } else if (item.first_name && item.last_name) {
+                            displayText = `${item.first_name} ${item.last_name}`;
+                        } else {
+                            displayText = `ID: ${item.id}`;
+                        }
+                        
+                        li.textContent = displayText;
+                        listElement.appendChild(li);
+                    });
+                } else {
+                    const li = document.createElement('li');
+                    li.className = 'data-item';
+                    li.textContent = 'No data found';
+                    li.style.color = '#666';
+                    listElement.appendChild(li);
+                }
+
+                return true;
+
+            } catch (error) {
+                document.getElementById(statusId).className = 'status error';
+                document.getElementById(statusId).textContent = '❌ Error';
+                document.getElementById(countId).innerHTML = `<div class="error-message">Error: ${error.message}</div>`;
+                return false;
+            }
+        }
+
+        // Main test function
+        async function runAllTests() {
+            const connectionStatus = document.getElementById('connection-status');
+            
+            try {
+                // Test basic connection
+                const { data, error } = await supabase.from('companies').select('count');
+                
+                if (error) {
+                    connectionStatus.className = 'connection-status disconnected';
+                    connectionStatus.innerHTML = '❌ <strong>Connection Failed</strong><br>Please check your Supabase credentials in supabase.js';
+                    return;
+                }
+
+                connectionStatus.className = 'connection-status connected';
+                connectionStatus.innerHTML = '✅ <strong>Connected to Supabase!</strong><br>Testing all tables...';
+
+                // Test all tables
+                const tests = [
+                    { table: 'companies', status: 'companies-status', count: 'companies-count', list: 'companies-list' },
+                    { table: 'jobs', status: 'jobs-status', count: 'jobs-count', list: 'jobs-list', displayField: 'title' },
+                    { table: 'events', status: 'events-status', count: 'events-count', list: 'events-list', displayField: 'title' },
+                    { table: 'activity_log', status: 'activity-status', count: 'activity-count', list: 'activity-list', displayField: 'message' },
+                    { table: 'applicants', status: 'applicants-status', count: 'applicants-count', list: 'applicants-list', displayField: 'first_name' },
+                    { table: 'applications', status: 'applications-status', count: 'applications-count', list: 'applications-list', displayField: 'cover_letter' }
+                ];
+
+                let allPassed = true;
+                for (const test of tests) {
+                    const result = await testTable(test.table, test.status, test.count, test.list, test.displayField);
+                    if (!result) allPassed = false;
+                }
+
+                if (allPassed) {
+                    connectionStatus.innerHTML = '✅ <strong>All Tests Passed!</strong><br>Your database is ready to use.';
+                } else {
+                    connectionStatus.innerHTML = '⚠️ <strong>Some Tests Failed</strong><br>Check the errors above and run seed.sql if needed.';
+                }
+
+            } catch (error) {
+                connectionStatus.className = 'connection-status disconnected';
+                connectionStatus.innerHTML = `❌ <strong>Connection Error</strong><br>${error.message}`;
+            }
+        }
+
+        // Run tests when page loads
+        document.addEventListener('DOMContentLoaded', runAllTests);
+    </script>
+</body>
+</html>
